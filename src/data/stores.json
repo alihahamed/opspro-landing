@@ -1,0 +1,11 @@
+[
+  { "id": "circle-mall", "brand": "Spinneys", "name": "Circle Mall JVC", "area": "Jumeirah Village Circle", "lngLat": [55.2082, 25.0554], "roster": [6, 10], "orders": 142, "credit": "nrd / Unsplash" },
+  { "id": "jvc-11", "brand": "Carrefour", "name": "Market JVC 11", "area": "Jumeirah Village Circle", "lngLat": [55.1991, 25.0527], "roster": [3, 4], "orders": 64, "credit": "Khuc Le Thanh Danh / Unsplash" },
+  { "id": "jvc-12", "brand": "Viva", "name": "JVC District 12", "area": "Jumeirah Village Circle", "lngLat": [55.2042, 25.0535], "roster": [4, 5], "orders": 88, "credit": "Gemma C / Unsplash" },
+  { "id": "jvc-15", "brand": "Carrefour", "name": "Market JVC 15", "area": "Jumeirah Village Circle", "lngLat": [55.2125, 25.0569], "roster": [5, 7], "orders": 97, "credit": "Egor Litvinov / Unsplash" },
+  { "id": "jvc-16", "brand": "Spinneys", "name": "JVC District 16", "area": "Jumeirah Village Circle", "lngLat": [55.2166, 25.0598], "roster": [2, 3], "orders": 41, "credit": "Quilia / Unsplash" },
+  { "id": "jvt", "brand": "Viva", "name": "JVT", "area": "Jumeirah Village Triangle", "lngLat": [55.1915, 25.0559], "roster": [4, 6], "orders": 73, "credit": "Jan Canty / Unsplash" },
+  { "id": "jvt-7", "brand": "Carrefour", "name": "Market JVT 7", "area": "Jumeirah Village Triangle", "lngLat": [55.1838, 25.0599], "roster": [3, 4], "orders": 52, "credit": "Eduardo Soares / Unsplash" },
+  { "id": "barsha-south", "brand": "Viva", "name": "Arjan 2", "area": "Arjan", "lngLat": [55.2190, 25.0671], "roster": [7, 9], "orders": 118, "credit": "Fikri Rasyid / Unsplash" },
+  { "id": "barsha-south-2", "brand": "Spinneys", "name": "Al Barsha South", "area": "Al Barsha South", "lngLat": [55.2209, 25.0750], "roster": [5, 6], "orders": 79, "credit": "Ashley Winkler / Unsplash" }
+]
