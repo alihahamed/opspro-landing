@@ -1,0 +1,40 @@
+/* Product section: big two-line title, then the mockup inside a 5px frame. */
+
+.section { max-width: 1248px; margin: 0 auto; padding: 96px 24px 128px; }
+
+.title {
+  max-width: 1100px; /* wide enough that the title sits on exactly two lines at desktop sizes */
+  margin: 0 auto;
+  text-align: center;
+  font-size: clamp(40px, 5.2vw, 76px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+/* The frame: 5px of surface around the image; corners stay concentric (32 = 27 + 5). */
+.frame {
+  margin-top: 64px;
+  padding: 5px;
+  border-radius: 32px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-2);
+}
+.shot {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 27px;
+  object-fit: cover;
+  background:
+    radial-gradient(120% 90% at 50% 100%, var(--teal-tint), transparent 60%),
+    linear-gradient(var(--surface-2), var(--bg));
+}
+
+@media (max-width: 767px) {
+  .section { padding: 72px 16px 96px; }
+  .frame { margin-top: 40px; border-radius: 24px; }
+  .shot { border-radius: 19px; aspect-ratio: 4 / 3; }
+}
