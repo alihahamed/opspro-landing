@@ -1,0 +1,632 @@
+/* Hero — values follow DESIGN.md (§3 type, §4 spacing, §5 depth, §7 map). */
+
+.hero {
+  position: relative;
+  height: 100svh;
+  min-height: 720px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ---------- Map ---------- */
+.mapLayer { position: absolute; inset: 0; }
+
+/* Sized with width/height, not inset: MapLibre's .maplibregl-map forces position: relative. */
+.map {
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s var(--ease-out);
+}
+.mapReady { opacity: 1; }
+
+/* Concave fade: solid page background behind the copy, dissolving outward so the map
+   stays visible at the sides and top corners. The gradient comes from zone.ts (inline vars),
+   the same ellipse that keeps bikes, pins and cards out from behind the copy. */
+.fade {
+  position: absolute;
+  inset: 0;
+  background: var(--fade-desktop);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bottomFade {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 220px;
+  background: linear-gradient(rgb(246 248 248 / 0), rgb(246 248 248 / 0.85) 60%, var(--bg));
+  opacity: var(--exit, 1); /* only as the hero leaves (set on scroll); shown when there's no scroll story */
+  pointer-events: none;
+}
+
+/* The OpenStreetMap licence requires a visible credit; this is the quietest form of it. */
+.credit {
+  position: absolute;
+  right: 16px;
+  bottom: 10px;
+  z-index: 2;
+  font-size: 10px;
+  color: var(--ink-4);
+}
+.credit:hover { color: var(--ink-3); }
+
+/* ---------- Nav ---------- */
+/* Floating: no bar, no background. Three columns so the links sit on the page's true centre
+   regardless of how wide the brand and log-in sides are. */
+.nav {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 80px;
+  max-width: 1248px; /* 1200 + gutters */
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.brand { display: flex; align-items: center; gap: 14px; justify-self: start; }
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.logoMark { width: 22px; height: 22px; transition: transform 0.6s var(--ease-out); }
+.logo:hover .logoMark { transform: rotate(90deg); }
+.navDivider { width: 1px; height: 16px; background: var(--line-2); }
+.clock { display: inline-flex; gap: 6px; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
+.clockTime { color: var(--ink); font-weight: 500; }
+
+.links { display: flex; gap: 2px; justify-self: center; }
+.link {
+  position: relative;
+  isolation: isolate; /* keeps the hover pill behind the label */
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition: color var(--dur-instant) var(--ease-out);
+}
+.link:hover, .link:focus-visible { color: var(--ink); }
+.linkPill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(15 26 26 / 0.06), 0 4px 12px rgb(15 26 26 / 0.06), inset 0 0 0 1px rgb(15 26 26 / 0.09);
+}
+
+.login {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px 0 16px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  background: rgb(255 255 255 / 0.6);
+  box-shadow: 0 1px 2px rgb(15 26 26 / 0.06), inset 0 0 0 1px rgb(15 26 26 / 0.08);
+  backdrop-filter: blur(8px);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.login:hover { background: rgb(255 255 255 / 0.9); }
+.login svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  transition: transform var(--dur-fast) var(--ease-out); }
+.login:hover svg { transform: translate(2px, -2px); }
+
+/* ---------- CTA: the clock-in button ----------
+   Rest: dashed geofence ring + "Book a live demo".
+   Hover: ring closes and fills teal, a ✓ draws in, the label rolls up letter by letter to
+   "Pick a time →", and a soft highlight sweeps across once. */
+.cta { gap: 10px; padding: 0 24px 0 18px; overflow: hidden; }
+.cta::after { /* one-shot light sweep */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.14) 50%, transparent 65%);
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.cta:hover::after { transform: translateX(120%); transition: transform 0.9s var(--ease-out); }
+
+.ctaIcon { width: 22px; height: 22px; flex: none; overflow: visible; }
+.ctaRing {
+  fill: transparent;
+  stroke: var(--teal);
+  stroke-width: 2.2;
+  stroke-dasharray: 4.2 2.4;
+  transform-origin: 12px 12px;
+  transition: stroke-dasharray 0.45s var(--ease-out), fill 0.35s var(--ease-out) 0.12s, transform 0.6s var(--ease-out);
+}
+.ctaCheck {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 0.35s var(--ease-out);
+}
+.cta:hover .ctaRing { stroke-dasharray: 60 0; fill: var(--teal); transform: rotate(120deg); }
+.cta:hover .ctaCheck { stroke-dashoffset: 0; transition-delay: 0.22s; }
+
+/* Two labels stacked in one grid cell; the button keeps the width of the longer one. */
+.ctaLabels { display: grid; overflow: hidden; line-height: 1.3; }
+.ctaLabel, .ctaLabelNext { grid-area: 1 / 1; display: inline-flex; white-space: pre; }
+.ctaLabel > span, .ctaLabelNext > span {
+  display: inline-block;
+  transition: transform 0.5s var(--ease-out), opacity 0.5s var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 14ms);
+}
+.ctaLabelNext > span { transform: translateY(110%); opacity: 0; }
+.cta:hover .ctaLabel > span { transform: translateY(-110%); opacity: 0; }
+.cta:hover .ctaLabelNext > span { transform: translateY(0); opacity: 1; }
+.ctaArrow { margin-left: 6px; }
+.cta:hover .ctaArrow { transition-delay: 0.2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ctaLabel > span, .ctaLabelNext > span, .ctaRing, .ctaCheck { transition-duration: 0.01ms; transition-delay: 0s; }
+  .cta:hover::after { transition: none; }
+}
+
+/* ---------- Copy ---------- */
+.copy {
+  position: relative;
+  z-index: 2;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 136px 24px 0; /* 72 nav + 64 */
+  text-align: center;
+  pointer-events: none; /* let the map be dragged around the text */
+}
+.copy a { pointer-events: auto; }
+
+/* ---------- Dive spotlight: edges dim in a colour that follows the story; the store stays bright ---------- */
+@property --tint { syntax: '<color>'; inherits: false; initial-value: rgb(15 26 26 / 0.34); }
+.diveTint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: var(--dim, 0);
+  background: radial-gradient(ellipse 36% 46% at 71% 52%, transparent 30%, var(--tint) 100%);
+  transition: --tint 0.9s var(--ease-out);
+}
+.diveTint[data-stage='0'] { --tint: rgb(15 26 26 / 0.34); }   /* roster: settle in */
+.diveTint[data-stage='1'] { --tint: rgb(0 96 88 / 0.4); }     /* verified clock-in: teal glow */
+.diveTint[data-stage='2'] { --tint: rgb(160 24 24 / 0.32); }  /* no-show: alarm */
+.diveTint[data-stage='3'] { --tint: rgb(0 110 100 / 0.36); }  /* reliever: back to calm */
+.diveTint[data-stage='4'] { --tint: rgb(15 26 26 / 0.4); }    /* hours: done for the day */
+
+/* ---------- Dive story: one notification per step, sliding in and away ---------- */
+.story {
+  position: absolute;
+  top: 50%;
+  left: max(24px, calc((100% - 1200px) / 2));
+  z-index: 2;
+  width: min(420px, calc(100% - 48px));
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.storyCard {
+  position: relative;
+  padding: 18px 20px 16px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgb(15 26 26 / 0.05), 0 16px 36px rgb(15 26 26 / 0.14), 0 40px 80px rgb(15 26 26 / 0.12);
+}
+/* A second card peeking underneath, so it reads as a notification stack */
+.storyCard::after {
+  content: '';
+  position: absolute;
+  inset: auto 14px -9px;
+  height: 20px;
+  z-index: -1;
+  border-radius: 0 0 20px 20px;
+  background: rgb(255 255 255 / 0.7);
+  box-shadow: 0 8px 20px rgb(15 26 26 / 0.1);
+}
+
+.storyHead { display: flex; align-items: center; gap: 10px; }
+.storyIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--teal);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgb(0 204 188 / 0.16);
+}
+.storyIcon svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.storyApp { font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.storyCount { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--ink-3); }
+
+.storyTitle { margin-top: 14px; font-size: 22px; font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; color: var(--ink); text-wrap: balance; }
+.storyBody { margin-top: 8px; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
+.storyStats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.storyStat {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--teal-tint);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--teal-ink);
+  white-space: nowrap;
+}
+
+/* Segmented progress (like stories): done segments full, the active one fills with scroll (--sp). */
+.storyContent { display: block; }
+.storyProgress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }
+.storyProgress span {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(var(--teal), var(--teal)) 0 0 / calc(var(--fill, 0) * 100%) 100% no-repeat, var(--line);
+}
+.storyProgress span[data-state='done'] { --fill: 1; }
+.storyProgress span[data-state='active'] { --fill: var(--sp, 0); }
+
+.title {
+  font-size: clamp(44px, 5.6vw, 84px);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.sub {
+  max-width: 54ch; /* two even lines at desktop sizes, no orphaned last word */
+  margin: 16px auto 0;
+  font-size: 19px;
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.ctas {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.liveDot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--teal);
+}
+.liveDot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: pulse 2s var(--ease-out) infinite;
+}
+.count { display: inline-flex; font-weight: 500; color: var(--ink); }
+.digit {
+  position: relative;
+  display: inline-block;
+  width: 0.62em;
+  text-align: center;
+  overflow: hidden;
+}
+.digit > span { display: inline-block; }
+.liveLabel { white-space: nowrap; }
+
+@keyframes pulse {
+  from { transform: scale(1); opacity: 0.6; }
+  to { transform: scale(2.4); opacity: 0; }
+}
+
+/* ---------- Store markers: photo avatar + status + orders ---------- */
+.store {
+  position: relative;
+  width: 46px;
+  height: 86px; /* avatar + order pill + stem; the marker's bottom sits on the store's road point */
+  opacity: var(--vis, 0); /* set per frame from zone.ts; 0 until the map has placed it */
+}
+
+/* The photo floats above its spot on a thin stem, so a rider waiting at the door stays visible. */
+.stem {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  height: 32px;
+  transform: translateX(-50%);
+  background: linear-gradient(var(--ink-4), rgb(154 168 168 / 0.2));
+}
+.stem::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  background: var(--ink);
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* Hovered and card-carrying stores sit above their neighbours. */
+:global(.maplibregl-marker):has(.cardAnchor > *) { z-index: 4; }
+:global(.maplibregl-marker):hover { z-index: 6; }
+
+/* Store photo. Greyscale until its shift starts, then it comes to colour. */
+.avatar {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--photo) center / cover, var(--surface-2);
+  border: 3px solid var(--surface);
+  box-shadow: var(--shadow-2);
+  filter: grayscale(1) opacity(0.8);
+  transition: filter var(--dur-slow) var(--ease-out), transform var(--dur-normal) var(--ease-out),
+    box-shadow var(--dur-normal) var(--ease-out);
+}
+.store:not([data-status='idle']) .avatar { filter: none; }
+.store:hover .avatar { transform: scale(1.08); }
+.store[data-status='late'] .avatar { box-shadow: 0 0 0 2px var(--amber), var(--shadow-2); }
+.store[data-status='noshow'] .avatar { box-shadow: 0 0 0 2px var(--red), var(--shadow-2); }
+
+/* Pickup ring: fills around the photo while a rider waits for the order (--pick set per frame). */
+.store::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: conic-gradient(var(--teal) calc(var(--pick, 0) * 1turn), rgb(0 204 188 / 0.16) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  opacity: var(--picking, 0); /* set per frame on the marker; vars inherit into the portal */
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+/* Orders today: ticks up (and pops a +1) every time a rider leaves with an order. */
+.orders {
+  position: absolute;
+  top: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  justify-content: center;
+  min-width: 30px;
+  height: 20px;
+  padding: 0 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 20px;
+  box-shadow: var(--shadow-1);
+}
+.orders > span { display: inline-block; }
+.plusOne {
+  position: absolute;
+  top: 34px;
+  left: calc(50% + 20px);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--teal-ink);
+  pointer-events: none;
+}
+
+/* Static wrapper does the centring so Motion owns the transform of the card itself. */
+.cardAnchor {
+  position: absolute;
+  bottom: calc(100% + 14px); /* leaves room for the caret */
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* ---------- Notification ----------
+   [photo + state badge]  OpsPro ·········· now
+                          Headline (tone colour)
+                          Store
+                          Detail
+   Concentric corners: card radius 22 = photo radius 10 + padding 12. */
+.card {
+  --tone: var(--teal-ink);
+  --tone-fill: var(--teal);
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px 1fr;
+  column-gap: 12px;
+  width: 272px;
+  padding: 12px 14px 13px 12px;
+  border-radius: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgb(15 26 26 / 0.04), 0 8px 20px rgb(15 26 26 / 0.08), 0 24px 48px rgb(15 26 26 / 0.08);
+  transform-origin: 50% calc(100% + 14px); /* grows out of the store's pin */
+  text-align: left;
+  will-change: transform, opacity, filter;
+}
+.card[data-tone='amber'] { --tone: var(--amber-ink); --tone-fill: var(--amber); }
+.card[data-tone='red'] { --tone: var(--red-ink); --tone-fill: var(--red); }
+
+/* Featured (the story's card): bigger, with a soft halo in its tone. Corners stay concentric: 26 = 12 + 14. */
+.card[data-featured] {
+  grid-template-columns: 52px 1fr;
+  column-gap: 14px;
+  width: 340px;
+  padding: 14px 16px 15px 14px;
+  border-radius: 26px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--tone-fill) 14%, transparent),
+    0 1px 2px rgb(15 26 26 / 0.05), 0 12px 28px rgb(15 26 26 / 0.12), 0 32px 64px rgb(15 26 26 / 0.1);
+  transition: box-shadow var(--dur-normal) var(--ease-out);
+}
+.card[data-featured] .noteIcon { width: 52px; height: 52px; border-radius: 12px; }
+.card[data-featured] .noteBadge { width: 24px; height: 24px; }
+.card[data-featured] .noteState { font-size: 19px; margin-top: 4px; }
+.card[data-featured] .noteStore { font-size: 14.5px; }
+.card[data-featured] .noteMeta { font-size: 13.5px; }
+
+/* …and its store's photo pulses in the same tone, so the eye lands on the right spot. */
+.store[data-featured] .avatar { transform: scale(1.12); }
+.store[data-featured]::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  animation: featurePulse 1.8s var(--ease-out) infinite;
+  pointer-events: none;
+}
+.store[data-featured][data-status='noshow']::after { border-color: var(--red); }
+@keyframes featurePulse {
+  from { transform: scale(0.9); opacity: 0.9; }
+  to { transform: scale(1.45); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .store[data-featured]::after { animation: none; opacity: 0; } }
+
+/* Caret pointing at the store */
+.card::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-bottom-right-radius: 3px;
+}
+
+.noteIcon {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin-top: 1px;
+  border-radius: 10px;
+  background: var(--photo) center / cover, var(--surface-2);
+  outline: 1px solid rgb(0 0 0 / 0.08); /* neutral edge so the photo doesn't bleed into white */
+  outline-offset: -1px;
+}
+/* State badge on the photo's corner: an icon, not a dot */
+.noteBadge {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--tone-fill);
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--surface);
+  transition: background-color var(--dur-normal) var(--ease-out);
+}
+.noteBadge svg { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+
+.noteBody { display: flex; flex-direction: column; min-width: 0; }
+.noteHead {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  line-height: 16px; /* matches the photo's top edge */
+  color: var(--ink-3);
+}
+.noteHead span:first-child { font-weight: 500; color: var(--ink-2); }
+.noteText { display: flex; flex-direction: column; }
+.noteState {
+  margin-top: 3px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--tone);
+  transition: color var(--dur-normal) var(--ease-out);
+}
+.noteStore { margin-top: 2px; font-size: 13px; font-weight: 500; line-height: 1.4; color: var(--ink); }
+.noteMeta { font-size: 12.5px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; }
+
+.cardTitle { display: block; font-size: 14px; font-weight: 500; line-height: 1.3; color: var(--ink); }
+.cardMeta { display: block; font-size: 12px; line-height: 1.4; color: var(--ink-3); }
+
+/* Hover: photo card for the store (Brickwise reference). */
+.detail {
+  display: block;
+  width: 240px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgb(15 26 26 / 0.04), 0 8px 20px rgb(15 26 26 / 0.08), 0 24px 48px rgb(15 26 26 / 0.08);
+  transform-origin: 50% calc(100% + 14px);
+  text-align: left;
+}
+.detailPhoto { display: block; width: 100%; height: 128px; object-fit: cover; outline: 1px solid rgb(0 0 0 / 0.06); outline-offset: -1px; }
+.detailBody { display: block; padding: 12px 14px 14px; }
+.detailBrand { display: block; margin-bottom: 2px; font-size: 11px; font-weight: 500; color: var(--teal-ink); }
+.detailStats {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.statNum { color: var(--ink); font-weight: 500; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 767px) {
+  /* Phones: the card sits under the nav; the spotlight centres lower, where the store is. */
+  .story { top: 84px; left: 16px; width: calc(100% - 32px); transform: none; }
+  .storyTitle { font-size: 19px; }
+  .storyBody { font-size: 14px; }
+  .storyStats { display: none; }
+  .diveTint { background: radial-gradient(ellipse 60% 34% at 50% 72%, transparent 30%, var(--tint) 100%); }
+  .card[data-featured] { width: 300px; }
+  .nav { padding: 0 16px; }
+  .nav { grid-template-columns: 1fr auto; }
+  .links, .navDivider, .clock { display: none; }
+  .copy { padding: 112px 16px 0; }
+  .sub { font-size: 17px; }
+  .fade { background: var(--fade-mobile); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liveDot::after { animation: none; opacity: 0; }
+  .map { transition: opacity 0.2s linear; }
+}
