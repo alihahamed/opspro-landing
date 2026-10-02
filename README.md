@@ -26,7 +26,8 @@ python3 scripts/convert-scooter.py   # re-bake the scooter model into src/data/s
 
 ```
 src/components/hero/      hero, live map, scroll story, route maths, quiet zone, scooter mesh
-src/components/features/  product section (mockup frame)
+src/components/features/  product section (mockup frame + callouts wired to the dashboard)
+src/components/monthend/  month-end section (timesheet report that checks itself)
 src/components/SmoothScroll.tsx
 src/data/                 stores, baked routes, map style, scooter mesh
 scripts/                  bake + conversion scripts, tests
