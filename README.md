@@ -41,6 +41,7 @@ public/models/            scooter model (source for the baked mesh)
 - Routes from the [OSRM](https://project-osrm.org) demo server.
 - Scooter model: "Scooter" by Poly by Google, [CC-BY](https://poly.pizza/m/eHdEFPwUfCt).
 - Store photos from [Unsplash](https://unsplash.com) (credits in `src/data/stores.json`).
+- Picker portraits in the face-check section (`public/people/`) are Unsplash stock photos of models, not OpsPro workers.
 - Satoshi by [Fontshare](https://www.fontshare.com/fonts/satoshi).
 
 Store banners (Spinneys, Viva, Carrefour) are the client's real brands and need their sign-off before launch.
