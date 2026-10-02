@@ -1,0 +1,98 @@
+/* Rules: a dark slab of big sentences, each with live pieces inside it. */
+
+.section {
+  --text: #F2F6F6; --text-2: rgb(233 239 239 / 0.62);
+  position: relative;
+  margin: 40px 16px;
+  padding: 128px 0 72px;
+  border-radius: 40px;
+  color: var(--text);
+  background: linear-gradient(180deg, #152222, var(--ink) 40%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+.inner { width: calc(100% - 48px); max-width: 1200px; margin: 0 auto; }
+.title {
+  max-width: 20ch;
+  font-size: clamp(36px, 4.4vw, 68px); font-weight: 500;
+  line-height: 1.04; letter-spacing: -0.04em; text-wrap: balance;
+}
+
+.rules { list-style: none; margin: 88px 0 0; padding: 0; }
+.rule {
+  display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 56px;
+  padding: 44px 0 48px;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+.meta { padding-top: 10px; font-size: 14px; line-height: 1.5; color: var(--text-2); text-wrap: pretty; }
+.meta b { display: block; margin-bottom: 4px; font-size: 16px; font-weight: 500; color: var(--text); }
+
+.line {
+  font-size: clamp(26px, 3vw, 44px); font-weight: 500;
+  line-height: 1.4; letter-spacing: -0.03em; text-wrap: pretty;
+  font-variant-numeric: tabular-nums;
+}
+.soft { color: rgb(233 239 239 / 0.68); }
+
+/* the live pieces sit in the sentence like words */
+.who, .pill, .flip em {
+  /* inline-block on the text baseline, so each piece lines up with the words around it */
+  display: inline-block; padding: 0.03em 0.3em 0.07em; border-radius: 999px;
+  line-height: 1.1; text-align: center; white-space: nowrap;
+  transition: color 0.35s, background-color 0.35s, box-shadow 0.35s, opacity 0.35s, transform 0.5s var(--ease-out);
+}
+.who { padding-left: 0.1em; color: var(--text); background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1); }
+.who i {
+  width: 2.2em; height: 2.2em; margin-right: 0.5em; border-radius: 50%; /* font is 0.4em of the line: 0.88 line-em */
+  display: inline-grid; place-items: center; vertical-align: 0.3em;
+  font-size: 0.4em; font-style: normal; letter-spacing: 0; color: var(--ink); background: #DCE4E4;
+}
+.pill { position: relative; color: var(--text); background: rgb(255 255 255 / 0.1); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.14); }
+
+/* overtime: Waiting, then Approved */
+.flip { display: inline-grid; }
+.flip em { grid-area: 1 / 1; font-style: normal; opacity: 0; transform: translateY(0.3em); }
+.flip svg { width: 0.7em; height: 0.7em; margin-right: 0.2em; vertical-align: -0.04em; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.flip [data-tone='ot'] { color: #FCD34D; background: rgb(245 158 11 / 0.16); }
+.flip [data-tone='ok'] { color: #5EEAD4; background: rgb(0 204 188 / 0.16); }
+.rule[data-step='1'] .flip [data-tone='ot'], .rule[data-step='2'] .flip [data-tone='ok'] { opacity: 1; transform: none; }
+.rule[data-rule='ot'][data-step='2'] .pill { color: #5EEAD4; background: rgb(0 204 188 / 0.12); box-shadow: inset 0 0 0 1px rgb(0 204 188 / 0.3); }
+
+/* missed clock-out: the running clock turns red past 3h over, gets struck out, the close time lights up */
+.rule[data-over] [data-strike] { color: #FCA5A5; background: rgb(239 68 68 / 0.16); box-shadow: inset 0 0 0 1px rgb(239 68 68 / 0.3); }
+[data-strike]::after {
+  content: ''; position: absolute; left: 0.24em; right: 0.24em; top: 50%; height: 0.06em; border-radius: 1px;
+  background: currentColor; transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.45s var(--ease-out);
+}
+.rule:is([data-step='1'], [data-step='2']) [data-strike]::after { transform: none; }
+.rule:not([data-step='2']) [data-fix] { opacity: 0.3; }
+.rule[data-step='2'] [data-fix] { color: #FCD34D; background: rgb(245 158 11 / 0.16); box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.32); }
+
+/* late: amber once it passes 60 min */
+.rule[data-rule='late'][data-over] .pill { color: #FCD34D; background: rgb(245 158 11 / 0.16); box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.32); }
+
+/* documents: amber once the countdown stops */
+.rule[data-rule='docs'][data-step='1'] .pill { color: #FCD34D; background: rgb(245 158 11 / 0.16); box-shadow: inset 0 0 0 1px rgb(245 158 11 / 0.32); }
+
+/* billable days: a cancelled shift takes one off */
+.badge {
+  position: absolute; top: -0.5em; right: -1.1em;
+  padding: 0.3em 0.5em; border-radius: 999px;
+  font-size: 0.36em; font-style: normal; letter-spacing: 0; line-height: 1;
+  color: #FCA5A5; background: #3A1F22; box-shadow: 0 0 0 3px var(--ink);
+  opacity: 0; transform: translateY(0.4em) scale(0.8);
+  transition: opacity 0.35s var(--ease-out), transform 0.5s var(--ease-out);
+}
+.rule[data-step='1'] .badge { opacity: 1; transform: none; }
+
+@media (max-width: 899px) {
+  .rule { grid-template-columns: minmax(0, 1fr); gap: 14px; padding: 32px 0 36px; }
+  .meta { padding-top: 0; }
+}
+@media (max-width: 767px) {
+  .section { margin: 24px 8px; padding: 88px 0 40px; border-radius: 28px; }
+  .inner { width: calc(100% - 40px); }
+  .rules { margin-top: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .who, .pill, .flip em, [data-strike]::after, .badge { transition: none; }
+}

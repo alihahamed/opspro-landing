@@ -28,10 +28,13 @@ python3 scripts/convert-scooter.py   # re-bake the scooter model into src/data/s
 src/components/hero/      hero, live map, scroll story, route maths, quiet zone, scooter mesh
 src/components/features/  product section (mockup frame + callouts wired to the dashboard)
 src/components/monthend/  month-end section (timesheet report that checks itself)
+src/components/facecheck/ face-check section (picker app on an iPhone + supervisor review card)
+src/components/rules/     rules section (big sentences with live pieces: overtime, missed clock-out, late, documents, billable days)
 src/components/SmoothScroll.tsx
 src/data/                 stores, baked routes, map style, scooter mesh
 scripts/                  bake + conversion scripts, tests
 public/stores/            store photos
+public/app/               picker app screens (rebuilt in Figma)
 public/models/            scooter model (source for the baked mesh)
 ```
 
