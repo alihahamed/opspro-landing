@@ -48,3 +48,23 @@
 .sheet b { font-weight: 500; color: var(--ink-2); }
 .sheet em { display: flex; align-items: center; gap: 4px; font-style: normal; font-weight: 500; color: var(--teal-ink); }
 .sheet svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* ghosted rows so last months read as real reports while they rise */
+.sheet::after {
+  content: '';
+  position: absolute; inset: 96px 32px 40px;
+  background:
+    linear-gradient(90deg, rgb(15 26 26 / 0.06) 0 18%, transparent 18% 24%, rgb(0 204 188 / 0.16) 24% 66%, transparent 66% 86%, rgb(15 26 26 / 0.06) 86%) 0 18px / 100% 10px no-repeat,
+    repeating-linear-gradient(transparent 0 51px, rgb(15 26 26 / 0.07) 51px 52px);
+  -webkit-mask: linear-gradient(#000, transparent 85%);
+          mask: linear-gradient(#000, transparent 85%);
+}
+.sheet1 {
+  transform: translateY(-24px) scale(0.965);
+  background: linear-gradient(#FBFCFC, #F1F5F5);
+  box-shadow: 0 2px 4px rgb(15 26 26 / 0.06), 0 18px 40px -12px rgb(15 26 26 / 0.22);
+}
+.sheet2 {
+  transform: translateY(-48px) scale(0.93);
+  background: linear-gradient(#F3F7F7, #E6EDED);
+  box-shadow: 0 2px 4px rgb(15 26 26 / 0.05), 0 14px 30px -12px rgb(15 26 26 / 0.18);
+}
