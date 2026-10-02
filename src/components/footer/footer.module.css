@@ -1,0 +1,74 @@
+/* Footer: dark slab, link columns, and a giant wordmark (O = the geofence ring) rising out of the bottom edge. */
+
+.foot {
+  --text: #F2F6F6; --text-2: rgb(233 239 239 / 0.62);
+  position: relative; overflow: hidden;
+  margin: 0 16px 16px; padding-top: 96px;
+  border-radius: 40px;
+  color: var(--text);
+  background: linear-gradient(180deg, #152222, var(--ink) 45%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+.inner { width: calc(100% - 80px); max-width: 1240px; margin: 0 auto; }
+.top { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); gap: 48px; }
+
+.pitch { max-width: 21ch; font-size: 26px; line-height: 1.28; letter-spacing: -0.02em; text-wrap: balance; }
+.demo {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 26px;
+  font-size: 15px; font-weight: 500; color: var(--teal);
+}
+.demo span { transition: transform var(--dur-fast) var(--ease-out); }
+.demo:hover span { transform: translateX(4px); }
+
+.col { display: flex; flex-direction: column; align-items: flex-start; }
+.col h3 { margin-bottom: 12px; font-size: 13px; font-weight: 400; color: var(--text-2); }
+.col a { padding: 5px 0; font-size: 15px; color: var(--text); transition: color var(--dur-fast); }
+.col a:hover { color: var(--teal); }
+
+
+.bottom {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 80px; padding: 20px 0;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  font-size: 14px; color: var(--text-2);
+}
+.up { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; font: inherit; color: var(--text); cursor: pointer; }
+.up span { transition: transform var(--dur-fast) var(--ease-out); }
+.up:hover span { transform: translateY(-3px); }
+
+/* ---------- the wordmark: cut off by the slab's bottom edge, lit by a light that follows the pointer ---------- */
+@property --mx { syntax: '<length-percentage>'; inherits: false; initial-value: 30%; }
+@property --my { syntax: '<length-percentage>'; inherits: false; initial-value: 40%; }
+.mark { position: relative; height: clamp(70px, 19.5vw, 300px); overflow: hidden; }
+.word {
+  position: absolute; left: 50%; bottom: -0.2em; translate: -50% 0;
+  margin: 0; white-space: nowrap;
+  font-size: clamp(96px, 27vw, 430px); font-weight: 500; line-height: 1; letter-spacing: -0.065em;
+}
+.word svg { display: inline-block; width: 0.72em; height: 0.72em; margin-right: 0.01em; vertical-align: baseline; overflow: visible; }
+.word circle { fill: none; stroke: var(--teal); stroke-width: 1.5; }
+.word .core { fill: #263737; stroke: none; }
+.word span {
+  --mx: 30%; --my: 40%;
+  padding-right: 0.08em; /* the last glyph overhangs the box (negative tracking); keep it inside the clipped background */
+  color: transparent;
+  background: radial-gradient(34vw circle at var(--mx) var(--my), #CFF7F2, var(--teal) 22%, #263737 62%);
+  -webkit-background-clip: text; background-clip: text;
+  animation: sweep 10s ease-in-out infinite alternate;
+}
+.mark[data-live] .word span { animation: none; }
+@keyframes sweep { from { --mx: 8%; --my: 30%; } to { --mx: 92%; --my: 55%; } }
+
+@media (max-width: 1099px) {
+  .top { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 56px; }
+}
+@media (max-width: 767px) {
+  .foot { margin: 0 8px 8px; padding-top: 64px; border-radius: 28px; }
+  .inner { width: calc(100% - 40px); }
+  .top { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .pitch { font-size: 22px; }
+  .bottom { margin-top: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .word span { animation: none; }
+}

@@ -131,7 +131,7 @@ export default function FaceCheck() {
   }, { scope: root });
 
   return (
-    <section ref={root} className={s.section} aria-labelledby="facecheck-title">
+    <section ref={root} id="face-check" className={s.section} aria-labelledby="facecheck-title">
       <h2 id="facecheck-title" className={s.title} data-title>When a selfie looks off,<br /> a person checks it.</h2>
 
       <div className={s.stage} data-stage data-state="idle">

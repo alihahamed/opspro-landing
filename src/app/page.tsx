@@ -4,9 +4,11 @@ import MonthEnd from "@/components/monthend/MonthEnd";
 import FaceCheck from "@/components/facecheck/FaceCheck";
 import Rules from "@/components/rules/Rules";
 import Cta from "@/components/cta/Cta";
+import Footer from "@/components/footer/Footer";
 
 export default function Home() {
   return (
+    <>
     <main>
       <Hero />
       <Features />
@@ -15,5 +17,7 @@ export default function Home() {
       <Rules />
       <Cta />
     </main>
+    <Footer />
+    </>
   );
 }

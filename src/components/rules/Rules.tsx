@@ -89,7 +89,7 @@ export default function Rules() {
   }, { scope: root });
 
   return (
-    <section ref={root} className={s.section} aria-labelledby="rules-title">
+    <section ref={root} id="rules" className={s.section} aria-labelledby="rules-title">
       <div className={s.inner}>
         <h2 id="rules-title" className={s.title} data-title>Same rules on every shift, even the one that ends at 2am.</h2>
 
