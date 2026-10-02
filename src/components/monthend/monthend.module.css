@@ -204,3 +204,29 @@
 .msg.gone > * { opacity: 0; transition-duration: 0.12s; }
 .stage[data-done='true'] .pile { visibility: hidden; transition: visibility 0s 0.5s; }
 
+/* the finale: rises out of the report's bottom edge into the slot */
+.landing { position: absolute; inset: 0; overflow: hidden; border-radius: 0 0 23px 23px; }
+.sent {
+  position: absolute; left: 0; right: 0; bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px 12px 12px;
+  border-radius: 16px;
+  color: #fff;
+  background: linear-gradient(180deg, #1F2D2D, var(--ink));
+  /* kept inside the 14px it floats above the edge, so the slide-up clip never cuts the shadow */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 -4px 18px rgb(15 26 26 / 0.18), 0 4px 8px -2px rgb(15 26 26 / 0.3);
+  font-size: 12.5px; line-height: 1.4;
+  transform: translateY(130%);
+  transition: transform 0.9s var(--ease-out) 0.25s;
+}
+.stage[data-done='true'] .sent { transform: translateY(0); }
+.sent b { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: #fff; }
+.sent > span:nth-child(2) { flex: 1; min-width: 0; color: var(--teal-line); white-space: nowrap; }
+.sent small { font-size: 11.5px; font-weight: 400; letter-spacing: 0; color: rgb(255 255 255 / 0.7); white-space: nowrap; }
+.sentBadge {
+  flex: none; width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--teal); box-shadow: 0 0 0 5px rgb(0 204 188 / 0.18);
+}
+.sentBadge svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
