@@ -112,3 +112,20 @@
   background: var(--surface-2);
 }
 
+/* 30-day strip: one tick per day. A soft band marks the day being checked. */
+.strip { position: relative; display: grid; grid-template-columns: repeat(30, minmax(0, 1fr)); gap: 3px; height: 22px; }
+.strip i { border-radius: 2px; background: #DCE3E3; transform-origin: bottom; transition: background-color 0.35s ease; }
+.strip i.off { background: rgb(15 26 26 / 0.04); }
+.strip i.checked { background: var(--teal); animation: tick 0.4s var(--ease-out); }
+.strip i.issue.checked { background: var(--red); }
+@keyframes tick { from { transform: scaleY(0.45); } }
+.strip::after {
+  content: '';
+  position: absolute; top: -7px; bottom: -7px;
+  left: calc(var(--day) / 30 * 100% - 1px); width: calc(100% / 30 + 2px);
+  border-radius: 4px;
+  background: rgb(15 26 26 / 0.07);
+  transition: opacity 0.3s;
+}
+.stage[data-done='true'] .strip::after { opacity: 0; }
+
