@@ -37,3 +37,22 @@
     linear-gradient(var(--surface-2), var(--bg));
 }
 
+/* Anchor pins sit on the image itself (inset by the frame padding + border). */
+.pins { position: absolute; inset: 6px; pointer-events: none; }
+.pin {
+  position: absolute;
+  width: 12px; height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 0 0 2.5px var(--ink), 0 2px 6px rgb(15 26 26 / 0.3);
+}
+.pin::after {
+  content: '';
+  position: absolute; inset: -2.5px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 rgb(15 26 26 / 0.35);
+  animation: ping 2.4s var(--ease-out) infinite;
+}
+@keyframes ping { to { box-shadow: 0 0 0 12px rgb(15 26 26 / 0); } }
+
