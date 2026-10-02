@@ -1,10 +1,10 @@
 'use client';
 
-// Face-flag section: the verification desk. A dark comparator shows today's selfie next to the photo on file,
-// with a verdict bar underneath (same person / not sure / different person); a queue on the right holds the flags. When it scrolls
-// into view it works through three real flag types from the product, one decision at a time. Faces are
-// generated 3D scan wireframes, never photos of people; names and numbers are invented.
-import { useEffect, useRef } from 'react';
+// Face-check section: the picker's side and the supervisor's side of one clock-in. An iPhone plays the picker app
+// (screens rebuilt in Figma from the real OpsPro Picker app): tap Clock in, take the selfie, on shift, shift done.
+// The selfie is checked on the server; a close call lands on the supervisor's review card, and a person decides.
+// Plays when it scrolls into view (and again after scrolling back up past it), no scroll lock. People are stock photos of models; data is invented.
+import { useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
@@ -13,244 +13,156 @@ import s from './facecheck.module.css';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
-// Face geometry for the scan wireframe: width, nose length/size, eye spacing, jaw, and head turn (yaw, radians).
-type Person = { w: number; nose: number; eyes: number; jaw: number; yaw: number };
-type Flag = {
-  title: string; line: string; meta: string; at: string; distance: number; verdict: 'approve' | 'reject';
-  captured: Person; reference: Person | 'id'; replaced?: Person; refNote: string; photo: string; why: string; decided: string;
-};
-
-const FLAGS: Flag[] = [
-  {
-    title: 'Borderline match on clock-in', line: 'Distance 0.538. Compare the selfie with the reference.',
-    meta: 'Clock-in · Viva JVT · 08:02', at: '08:02', distance: 0.538, verdict: 'approve', photo: '/people/picker-jm.webp', decided: '08:04',
-    why: 'Close to the photo on file, but not close enough to pass on its own.',
-    captured: { w: 0.8, nose: 1, eyes: 0.3, jaw: 0.95, yaw: 0.42 },
-    reference: { w: 0.8, nose: 1.05, eyes: 0.31, jaw: 1, yaw: -0.06 }, refNote: 'Since 12 Mar',
-  },
-  {
-    title: 'First clock-in, no reference on file', line: 'Today’s selfie became the reference. Check it against the Emirates ID before trusting it.',
-    meta: 'Clock-in · Spinneys Circle Mall · 07:56', at: '07:56', distance: 0.712, verdict: 'reject', photo: '/people/picker-rk.webp', decided: '08:01',
-    why: 'There’s no photo on file yet, so the selfie is checked against the ID card.',
-    captured: { w: 0.86, nose: 0.8, eyes: 0.33, jaw: 1.15, yaw: 0.36 },
-    reference: 'id', refNote: 'ID card',
-  },
-  {
-    title: 'Reference photo replaced', line: 'Someone changed the stored face from the dashboard. Future clock-ins will match the new photo, so confirm it first.',
-    meta: 'Replaced 09:14 by ops · Carrefour JVC 15', at: '09:31', distance: 0.512, verdict: 'approve', photo: '/people/picker-sv.webp', decided: '09:36',
-    why: 'The photo on file was just replaced, so someone confirms it’s the same person.',
-    captured: { w: 0.74, nose: 0.9, eyes: 0.28, jaw: 0.9, yaw: -0.4 },
-    reference: { w: 0.74, nose: 0.92, eyes: 0.285, jaw: 0.92, yaw: 0.05 },
-    replaced: { w: 0.84, nose: 1.15, eyes: 0.33, jaw: 1.1, yaw: 0.05 }, refNote: 'Replaced 09:14',
-  },
-];
-const WAITING = 15;
-const REVIEWER = 'Sara M.';
-// where the pointer sits on the verdict bar: the three zones get readable widths (0–0.5, 0.5–0.6, 0.6–1 → 0–40%, 40–64%, 64–100%)
-const barPos = (d: number) => d < 0.5 ? (d / 0.5) * 40 : d < 0.6 ? 40 + ((d - 0.5) / 0.1) * 24 : 64 + ((d - 0.6) / 0.4) * 36;
-const zone = (d: number) => d < 0.5 ? 'Same person' : d < 0.6 ? 'Not sure' : 'Different person';
-
-// The face as a height field: an ellipsoid head plus gaussian bumps for brow, eye sockets, nose, lips and chin.
-const g = (x: number, y: number, cx: number, cy: number, sx: number, sy: number) => Math.exp(-(((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2));
-function depth(p: Person, x: number, y: number) {
-  const a = p.w * (1 - 0.28 * Math.max(0, y) ** 2 * p.jaw), b = 1.08;
-  const r = (x / a) ** 2 + (y / b) ** 2;
-  if (r > 1) return null;
-  const ax = Math.abs(x);
-  return 0.62 * Math.sqrt(1 - r)
-    + 0.1 * g(ax, y, p.eyes, -0.32, 0.22, 0.06)             // brow
-    - 0.16 * g(ax, y, p.eyes, -0.12, 0.15, 0.09)            // eye sockets
-    + 0.4 * p.nose * g(x, y, 0, 0.06 * p.nose, 0.085, 0.27) // nose ridge
-    + 0.16 * g(x, y, 0, 0.3 * p.nose, 0.13, 0.09)           // nose tip
-    + 0.07 * g(ax, y, 0.4, 0.2, 0.18, 0.15)                 // cheeks
-    + 0.09 * g(x, y, 0, 0.56, 0.22, 0.05)                   // lips
-    - 0.04 * g(x, y, 0, 0.64, 0.2, 0.03)                    // lip line
-    + 0.08 * g(x, y, 0, 0.86, 0.2, 0.1);                    // chin
-}
-// Horizontal scan lines across the surface, seen slightly from below and turned by `yaw`, so every feature
-// lifts the lines it crosses (the Face ID look). Plus the head's silhouette. Nearer lines are brighter.
-function meshPaths(p: Person) {
-  const S = 70, cx = 100, cy = 108, cy_ = Math.cos(p.yaw), sy_ = Math.sin(p.yaw), PITCH = 0.42, cp = Math.cos(PITCH), sp = Math.sin(PITCH);
-  const proj = (x: number, y: number, z: number) => {
-    const zz = -x * sy_ + z * cy_;
-    return [cx + (x * cy_ + z * sy_) * S, cy + (y * cp - zz * sp) * S, zz] as const;
-  };
-  const out: { d: string; o: number }[] = [];
-  for (let y = -1.0; y <= 1.0; y += 0.055) {
-    let d = '', zs = 0, n = 0;
-    for (let x = -1.1; x <= 1.1; x += 0.03) {
-      const z = depth(p, x, y);
-      if (z === null) continue;
-      const [X, Y, Z] = proj(x, y, z);
-      d += `${n ? 'L' : 'M'}${X.toFixed(1)} ${Y.toFixed(1)}`; zs += Z; n++;
-    }
-    if (n > 2) out.push({ d, o: Math.min(1, Math.max(0.25, 0.45 + (zs / n) * 1.2)) });
-  }
-  // silhouette: right edge top to bottom, then left edge back up
-  const edge = (side: 1 | -1) => Array.from({ length: 41 }, (_, i) => {
-    const y = side === 1 ? -1.07 + i * 0.0535 : 1.07 - i * 0.0535;
-    const a = p.w * (1 - 0.28 * Math.max(0, y) ** 2 * p.jaw);
-    return proj(side * a * Math.sqrt(Math.max(0, 1 - (y / 1.08) ** 2)), y, 0.02);
-  });
-  out.push({ d: [...edge(1), ...edge(-1)].map(([X, Y], i) => `${i ? 'L' : 'M'}${X.toFixed(1)} ${Y.toFixed(1)}`).join('') + 'Z', o: 0.55 });
-  return out;
-}
-// Built in the browser after hydration, so the page HTML doesn't carry thousands of coordinates.
-function Mesh({ p }: { p: Person }) {
-  const ref = useRef<SVGGElement>(null);
-  useEffect(() => {
-    ref.current!.innerHTML = meshPaths(p).map((m, i) => `<path d="${m.d}" pathLength="1" style="--i:${i};opacity:${m.o.toFixed(2)}"/>`).join('');
-  }, [p]);
-  return (
-    <svg viewBox="0 0 200 220" className={s.portrait}>
-      <defs><radialGradient id="scanGlow" cx="50%" cy="48%" r="55%"><stop offset="0" stopColor="#00CCBC" stopOpacity="0.14" /><stop offset="1" stopColor="#00CCBC" stopOpacity="0" /></radialGradient></defs>
-      <rect width="200" height="220" fill="url(#scanGlow)" />
-      <g ref={ref} className={s.mesh} />
-    </svg>
-  );
-}
-
-// A generic resident ID card (deliberately not a copy of any official design). Number is masked.
-function IdCard({ photo }: { photo: string }) {
-  return (
-    <div className={s.idCard}>
-      <div className={s.idTop}><span>Resident identity card</span><i className={s.idChip} /></div>
-      <div className={s.idBody}>
-        {/* eslint-disable-next-line @next/next/no-img-element -- small static portrait */}
-        <img src={photo} alt="" width={90} height={110} />
-        <dl>
-          <dt>Name</dt><dd>Rohan Kumar</dd>
-          <dt>ID number</dt><dd>784-1994-•••••••-3</dd>
-          <dt>Nationality</dt><dd>India</dd>
-          <dt>Expiry</dt><dd>14/06/2028</dd>
-        </dl>
-      </div>
-    </div>
-  );
-}
+// where the tappable controls sit on the 390×844 screens (from the Figma frames)
+const CLOCK_IN = { x: '50%', y: '68.96%' };
+const SHUTTER = { x: '50%', y: '88.15%' };
 
 const Check = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" /></svg>;
 const Cross = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5 5 6 6M11 5l-6 6" /></svg>;
-const Lock = () => <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="7" width="9" height="6.5" rx="1.6" /><path d="M5.5 7V5.2a2.5 2.5 0 0 1 5 0V7" /></svg>;
 
 export default function FaceCheck() {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(() => {
     const el = root.current!;
-    const desk = el.querySelector<HTMLElement>('[data-desk]')!;
-    const count = el.querySelector<HTMLElement>('[data-count]')!;
-    const items = el.querySelectorAll<HTMLElement>('[data-item]');
-    const cases = el.querySelectorAll<HTMLElement>('[data-case]');
-
-    // step: which flag is open; phase: 'scan' while it's being compared, 'done' once decided
-    const show = (step: number, phase: 'scan' | 'done') => {
-      desk.dataset.step = String(step);
-      desk.dataset.phase = phase;
-      desk.style.setProperty('--d', String(barPos(FLAGS[step].distance)));
-      cases.forEach((c, i) => c.toggleAttribute('data-active', i === step));
-      items.forEach((it, i) => { it.dataset.state = i < step || (i === step && phase === 'done') ? 'resolved' : i === step ? 'open' : 'waiting'; });
-      count.textContent = String(WAITING - step - (phase === 'done' ? 1 : 0));
-    };
+    const q = gsap.utils.selector(el);
+    const stage = el.querySelector<HTMLElement>('[data-stage]')!;
+    const setState = (v: string) => { stage.dataset.state = v; };
+    const flag = (name: string, on: boolean) => stage.toggleAttribute(name, on);
+    const clearFlags = () => ['data-hover', 'data-press', 'data-clicked'].forEach((n) => flag(n, false));
 
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      desk.style.setProperty('--d', '0');
       SplitText.create(el.querySelector('[data-title]'), {
         type: 'lines', mask: 'lines', autoSplit: true,
         onSplit: (self) => gsap.from(self.lines, { yPercent: 100, duration: 1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 75%', once: true } }),
       });
-
-      const tl = gsap.timeline({ scrollTrigger: { trigger: desk, start: 'top 70%', once: true } });
-      tl.from(el.querySelectorAll('[data-enter]'), { y: 48, autoAlpha: 0, duration: 0.8, ease: 'expo.out', stagger: 0.12 });
-      FLAGS.forEach((_, i) => {
-        tl.call(() => show(i, 'scan'), [], i === 0 ? '-=0.2' : '+=0.9');
-        tl.call(() => show(i, 'done'), [], '+=1.5');
+      gsap.set(q('[data-screen]:not([data-screen="clock-in"])'), { autoAlpha: 0 });
+      gsap.set(q('[data-cursor]'), { autoAlpha: 0 });
+      gsap.set(q('[data-ripple]'), { autoAlpha: 0 });
+      const tl = gsap.timeline({ paused: true })
+        .from(q('[data-phone]'), { y: 80, rotate: -4, autoAlpha: 0, duration: 1, ease: 'expo.out' })
+        .from(q('[data-review]'), { y: 40, autoAlpha: 0, duration: 0.8, ease: 'expo.out' }, 0.25)
+        // 1 · tap Clock in
+        .fromTo(q('[data-tap="in"]'), { scale: 0.2, autoAlpha: 0.9 }, { scale: 2.4, autoAlpha: 0, duration: 0.9, ease: 'power2.out' }, 1.8)
+        // 2 · the camera slides up
+        .fromTo(q('[data-screen="selfie"]'), { autoAlpha: 1, yPercent: 100 }, { yPercent: 0, duration: 0.9, ease: 'expo.out' }, 2.4)
+        // 3 · shutter: tap, flash
+        .fromTo(q('[data-tap="shutter"]'), { scale: 0.3, autoAlpha: 0.9 }, { scale: 2.2, autoAlpha: 0, duration: 0.8, ease: 'power2.out' }, 4.2)
+        .fromTo(q('[data-flash]'), { autoAlpha: 0 }, { autoAlpha: 0.95, duration: 0.1, yoyo: true, repeat: 1, ease: 'none' }, 4.35)
+        // 4 · clocked in: on shift; the selfie goes to the server and comes back a close call
+        .fromTo(q('[data-screen="on-shift"]'), { autoAlpha: 0, scale: 1.04 }, { autoAlpha: 1, scale: 1, duration: 0.7, ease: 'power2.out' }, 4.7)
+        .call(() => setState('flagged'), [], 5.8)
+        // 5 · a person decides
+        .to(q('[data-cursor]'), { autoAlpha: 1, duration: 0.3 }, 6.6)
+        .fromTo(q('[data-cursor]'), { x: 190, y: 120 }, { x: 0, y: 0, duration: 1.2, ease: 'power3.inOut' }, 6.6)
+        .call(() => flag('data-hover', true), [], 7.6)
+        // the click: pointer and button press in, a ripple spreads from the tip, the button confirms
+        .to(q('[data-cursor]'), { scale: 0.82, duration: 0.1, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 8.2)
+        .call(() => flag('data-press', true), [], 8.2)
+        .fromTo(q('[data-ripple]'), { scale: 0, autoAlpha: 0.55 }, { scale: 1, autoAlpha: 0, duration: 0.6, ease: 'power2.out' }, 8.24)
+        .call(() => { flag('data-press', false); flag('data-hover', false); flag('data-clicked', true); }, [], 8.38)
+        .to(q('[data-cursor]'), { x: 70, y: 46, autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 8.75)
+        .call(() => setState('approved'), [], 9.3)
+        // 6 · end of the day
+        .fromTo(q('[data-screen="shift-done"]'), { autoAlpha: 0, scale: 1.04 }, { autoAlpha: 1, scale: 1, duration: 0.8, ease: 'power2.out' }, 10.2);
+      // Plays when the section comes into view. It only resets once it has gone fully out of view below the
+      // screen (scrolling back up), so nothing vanishes while it's still visible; the next pass plays it again.
+      let armed = true;
+      ScrollTrigger.create({
+        trigger: stage, start: 'top 70%',
+        onEnter: () => { if (!armed) return; armed = false; setState('idle'); clearFlags(); tl.restart(); },
+      });
+      ScrollTrigger.create({
+        trigger: stage, start: 'top bottom',
+        onLeaveBack: () => { tl.pause(0); setState('idle'); clearFlags(); armed = true; },
       });
     });
-    mm.add('(prefers-reduced-motion: reduce)', () => show(FLAGS.length - 1, 'done'));
+    mm.add('(prefers-reduced-motion: reduce)', () => setState('approved'));
   }, { scope: root });
 
   return (
     <section ref={root} className={s.section} aria-labelledby="facecheck-title">
-      <header className={s.head}>
-        <h2 id="facecheck-title" className={s.title} data-title>When a selfie looks off,<br /> a person checks it.</h2>
-      </header>
+      <h2 id="facecheck-title" className={s.title} data-title>When a selfie looks off,<br /> a person checks it.</h2>
 
-      <div className={s.desk} data-desk data-step="0" data-phase="idle" aria-hidden="true">
-        {/* the comparator */}
-        <div className={s.panel} data-enter>
-          {FLAGS.map((f, i) => (
-            <div key={f.title} className={s.case} data-case={i} data-active={i === 0 ? '' : undefined}>
-              <div className={s.caseHead}>
-                <p className={s.caseTitle}>{f.title}</p>
-                <p className={s.caseMeta}>{f.meta}</p>
+      <div className={s.stage} data-stage data-state="idle">
+        {/* the picker's phone */}
+        <figure className={s.side}>
+          <div className={s.phone} data-phone>
+            <span className={s.btnL} /><span className={s.btnL2} /><span className={s.btnR} />
+            <div className={s.screen}>
+              {/* eslint-disable @next/next/no-img-element -- static screen captures of the app */}
+              <img data-screen="clock-in" src="/app/clock-in.webp" alt="OpsPro Picker app: today's store and the Clock in button" />
+              <img data-screen="selfie" src="/app/selfie.webp" alt="" />
+              <img data-screen="on-shift" src="/app/on-shift.webp" alt="" />
+              <img data-screen="shift-done" src="/app/shift-done.webp" alt="" />
+              {/* eslint-enable @next/next/no-img-element */}
+              <span className={s.tap} data-tap="in" style={{ left: CLOCK_IN.x, top: CLOCK_IN.y }} aria-hidden="true" />
+              <span className={s.tap} data-tap="shutter" style={{ left: SHUTTER.x, top: SHUTTER.y }} aria-hidden="true" />
+              <span className={s.flash} data-flash aria-hidden="true" />
+              <span className={s.island} aria-hidden="true" />
+            </div>
+          </div>
+          <figcaption>On the picker’s phone</figcaption>
+        </figure>
+
+        {/* the supervisor's side */}
+        <figure className={s.side}>
+          <div className={s.review} data-review aria-hidden="true">
+            <div className={s.rHead}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
+              <img className={s.avatar} src="/people/photo-on-file.webp" alt="" />
+              <div className={s.who}>
+                <b>Saeed S.</b>
+                <span>Clock-in at Carrefour JVC 15 · 10:02</span>
               </div>
+              <span className={s.status}>
+                <em className={s.sIdle}>Checking</em><em className={s.sFlag}>Needs a look</em><em className={s.sDone}>Resolved</em>
+              </span>
+            </div>
 
-              <div className={s.compare}>
-                <figure className={s.frame}>
-                  <div className={s.photo}>
-                    <Mesh p={f.captured} />
-                    <span className={s.scan} />
-                    <span className={s.stamp} data-verdict={f.verdict}>{f.verdict === 'approve' ? <><Check />Approved</> : <><Cross />Rejected</>}</span>
-                  </div>
-                  <figcaption>Today’s selfie<span>{f.at}</span></figcaption>
-                </figure>
-                <figure className={s.frame}>
-                  <div className={s.photo}>
-                    {f.reference === 'id' ? <IdCard photo="/people/id-rk.webp" /> : <Mesh p={f.reference} />}
-                    {f.replaced && <div className={s.oldRef}><Mesh p={f.replaced} /><span>Previous photo</span></div>}
-                    <span className={s.scan} />
-                  </div>
-                  <figcaption>{f.reference === 'id' ? 'On file' : 'Photo on file'}<span>{f.refNote}</span></figcaption>
-                </figure>
+            <div className={s.pair}>
+              <div className={s.shot}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
+                <img src="/people/selfie-today.webp" alt="" />
+                <span>Today’s selfie</span>
               </div>
-
-              <div className={s.verdictBar}>
-                <div className={s.track}>
-                  <i className={s.zSame}>Same person</i><i className={s.zUnsure}>Not sure</i><i className={s.zDiff}>Different person</i>
-                  <span className={s.pointer}><b>{zone(f.distance)}</b><small>{f.distance.toFixed(3)}</small></span>
-                </div>
+              <div className={s.shot}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
+                <img src="/people/photo-on-file.webp" alt="" />
+                <span>Photo on file</span>
               </div>
+              <div className={s.verdict}><b>Not sure</b><small>0.538</small></div>
+            </div>
 
-              <div className={s.decide}>
-                <p className={s.why}>{f.why}</p>
-                <span className={s.btnApprove} data-press={f.verdict === 'approve' ? '' : undefined}><Check />Approve, it’s them</span>
-                <span className={s.btnReject} data-press={f.verdict === 'reject' ? '' : undefined}><Cross />Reject, not them</span>
+            <p className={s.rWhy}>
+              <span className={s.waiting}>Comparing today’s selfie with the photo on file…</span>
+              <span className={s.close}>Close to the photo on file, but not close enough to pass on its own.</span>
+            </p>
+
+            <div className={s.meter}>
+              <div className={s.track}><i className={s.tSame} /><i className={s.tUnsure} /><i className={s.tDiff} /><b className={s.knob} /></div>
+              <div className={s.scale}><span>Same person</span><span>Not sure</span><span>Different person</span></div>
+            </div>
+
+            <div className={s.foot}>
+              <div className={s.actions}>
+                <span className={s.approve}><Check /><em className={s.lblIdle}>Approve, it’s them</em><em className={s.lblDone}>Approved</em><i className={s.ripple} data-ripple /></span>
+                <span className={s.reject}><Cross />Reject</span>
+              </div>
+              {/* a pointer that walks over to Approve and clicks it */}
+              <svg className={s.cursor} data-cursor viewBox="0 0 28 28" aria-hidden="true">
+                <path d="M5.5 3.2v19.4l5.2-5 3.3 7.6 3.4-1.5-3.3-7.4h7.2Z" />
+              </svg>
+              <div className={s.decided}>
+                <i>SM</i>
+                <span><b>Approved by Sara M.</b>10:04 · hours count as normal</span>
+                <em><Check /></em>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* the queue */}
-        <aside className={s.queue} data-enter>
-          <div className={s.qHead}>
-            <p>Face flags</p>
-            <span><b data-count>{WAITING}</b>waiting for a decision</span>
           </div>
-          <ol className={s.list}>
-            {FLAGS.map((f) => (
-              <li key={f.title} className={s.item} data-item data-state="waiting">
-                {/* eslint-disable-next-line @next/next/no-img-element -- tiny static avatar */}
-                <img className={s.thumb} src={f.photo} alt="" width={40} height={40} />
-                <span className={s.itemText}><b>{f.title}</b>{f.line}</span>
-                <div className={s.itemFoot}>
-                  <div>
-                    <span className={s.badge} data-verdict={f.verdict}>
-                      <i>{f.verdict === 'approve' ? <Check /> : <Cross />}</i>
-                      <b>{f.verdict === 'approve' ? 'Approved' : 'Rejected'}</b>
-                      <small>{REVIEWER} · {f.decided}</small>
-                    </span>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <div className={s.bulk}>
-            <span className={s.bulkBtn}><Lock />Resolve all</span>
-            <span>Face flags can’t be cleared in bulk.</span>
-          </div>
-        </aside>
+          <figcaption>On the supervisor’s dashboard</figcaption>
+        </figure>
       </div>
     </section>
   );
