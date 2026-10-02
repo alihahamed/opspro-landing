@@ -1,0 +1,22 @@
+/* Month-end: a timesheet report that checks itself day by day once it scrolls into view. */
+
+.section { position: relative; }
+.inner {
+  min-height: 100svh;
+  padding: 32px 0;
+  display: flex; flex-direction: column; justify-content: center; gap: 40px;
+}
+
+/* The header runs wider than the report so the title and description sit out near the page edges. */
+.head {
+  width: 100%;
+  padding-inline: clamp(20px, 2.5vw, 40px); /* full width: title hugs the left edge, description the right */
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 48px;
+}
+.title {
+  max-width: 26ch; /* two lines at desktop sizes */
+  font-size: clamp(36px, 4.4vw, 68px); font-weight: 500;
+  line-height: 1.04; letter-spacing: -0.04em; text-wrap: balance;
+}
+.sub { max-width: 400px; font-size: 17px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
+
