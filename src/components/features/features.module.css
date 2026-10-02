@@ -86,3 +86,22 @@
 .card[data-side='right'] { right: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
 .label { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 500; color: var(--teal-line); letter-spacing: 0.01em; }
 
+/* Narrower screens: no room at the sides, so the cards stack under the frame and the wires go. */
+@media (max-width: 1279px) {
+  .pins, .wires { display: none; }
+  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+  .card { position: static; width: auto; top: auto !important; }
+}
+
+@media (max-width: 767px) {
+  .section { padding: 72px 16px 96px; }
+  .stage { margin-top: 40px; }
+  .frame { border-radius: 24px; }
+  .shot { border-radius: 19px; aspect-ratio: 4 / 3; }
+  .cards { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin::after, .flow { animation: none; }
+  .flow { display: none; }
+}
