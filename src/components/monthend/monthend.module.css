@@ -230,3 +230,43 @@
 }
 .sentBadge svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
+/* ---------- smaller screens ---------- */
+@media (min-width: 768px) and (max-height: 840px) { /* short laptop screens: keep the whole report in view */
+  .inner { gap: 28px; }
+  .tr { height: 48px; }
+}
+@media (max-width: 1099px) {
+  .stage { --cols: 170px minmax(0, 1fr) 200px 110px; }
+  .report { padding: 22px 24px 0; }
+  .tr { gap: 20px; }
+  .foot { margin: 0 -24px; padding: 18px 24px; }
+}
+@media (max-width: 767px) {
+  .inner { min-height: 0; gap: 28px; padding: 72px 0; }
+  .head { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .stage { width: calc(100% - 32px); }
+  .report { padding: 18px 16px 0; border-radius: 20px; }
+  .sheet { border-radius: 20px; }
+  .slot { position: relative; left: auto; width: auto; height: 84px; margin: 4px 0 0; }
+  .pile { display: none; }
+  .landing { border-radius: 16px; }
+  .sent { bottom: 6px; }
+  .sent small { display: none; }
+  .sheet span { left: 18px; right: 18px; }
+  .top { padding-bottom: 16px; }
+  /* phone: name + status stacked, hours on the right; the day strip is dropped */
+  .tr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'who num' 'status num'; gap: 2px 12px; height: auto; padding: 10px 0; }
+  .th { display: none; }
+  .who { grid-area: who; font-size: 14px; }
+  .who i { width: 26px; height: 26px; font-size: 9.5px; }
+  .strip { display: none; }
+  .status { grid-area: status; padding-left: 36px; font-size: 12.5px; }
+  .status svg { width: 16px; height: 16px; }
+  .num { grid-area: num; }
+  .foot { margin: 0 -16px; padding: 16px; border-radius: 0 0 19px 19px; }
+  .grand b { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strip i, .strip i.checked, .chip, .export { transition: none; animation: none; }
+}
