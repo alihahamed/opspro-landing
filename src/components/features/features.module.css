@@ -68,3 +68,21 @@
 }
 @keyframes flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 1; } }
 
+/* Callout cards: solid ink, no icon. A small label names the dashboard element the line ends on.
+   Desktop: they float off the frame's sides, never closer than 24px to the viewport edge,
+   and animate in by sliding outward from the frame so nothing crosses the viewport edge. */
+.cards { list-style: none; margin: 0; padding: 0; }
+.card {
+  position: absolute;
+  width: clamp(200px, calc((100vw - 1200px) / 2 + 150px), 248px); /* narrows with the side margin so it never covers the laptop */
+  padding: 16px 18px 17px;
+  border-radius: 14px;
+  background: var(--ink);
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, var(--shadow-3);
+  font-size: 14px; line-height: 1.45; color: rgb(255 255 255 / 0.74);
+  text-wrap: pretty;
+}
+.card[data-side='left'] { left: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
+.card[data-side='right'] { right: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
+.label { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 500; color: var(--teal-line); letter-spacing: 0.01em; }
+
