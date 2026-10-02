@@ -220,64 +220,53 @@
   transform: translateY(-50%);
   pointer-events: none;
 }
+/* A dark shift log: the one dark object on the grey map, one accent at a time (teal; red for the no-show step). */
 .storyCard {
+  --acc: var(--teal);
+  --text: #F2F6F6; --text-2: rgb(233 239 239 / 0.66);
   position: relative;
-  padding: 18px 20px 16px;
-  border-radius: 24px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 2px rgb(15 26 26 / 0.05), 0 16px 36px rgb(15 26 26 / 0.14), 0 40px 80px rgb(15 26 26 / 0.12);
+  padding: 16px 20px 8px;
+  border-radius: 22px;
+  color: var(--text);
+  background: linear-gradient(180deg, #182727, var(--ink) 70%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 0 1px rgb(15 26 26 / 0.5), 0 28px 60px -16px rgb(15 26 26 / 0.6);
 }
-/* A second card peeking underneath, so it reads as a notification stack */
-.storyCard::after {
-  content: '';
-  position: absolute;
-  inset: auto 14px -9px;
-  height: 20px;
-  z-index: -1;
-  border-radius: 0 0 20px 20px;
-  background: rgb(255 255 255 / 0.7);
-  box-shadow: 0 8px 20px rgb(15 26 26 / 0.1);
+.storyCard[data-step='2'] { --acc: #F87171; }
+.storyHead {
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 12px; border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  font-size: 13px; color: var(--text-2); white-space: nowrap;
 }
+.storyHead svg { flex: none; width: 16px; height: 16px; }
+.storyHead b { font-weight: 500; color: var(--text); }
+.storyHead span { margin-left: auto; font-variant-numeric: tabular-nums; }
 
-.storyHead { display: flex; align-items: center; gap: 10px; }
-.storyIcon {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 11px;
-  background: var(--teal);
-  color: #fff;
-  box-shadow: 0 0 0 4px rgb(0 204 188 / 0.16);
+.storyLog { list-style: none; margin: 0; padding: 4px 0 0; }
+.storyRow { position: relative; display: grid; grid-template-columns: 44px minmax(0, 1fr) 16px; column-gap: 32px; padding: 10px 0; }
+/* the rail between the times and the entries, filled with the accent up to now (--sp fills the open entry) */
+.storyRow::before {
+  content: ''; position: absolute; left: 59px; top: 0; bottom: 0; width: 2px; /* centred in the 32px gap after the times */
+  background: linear-gradient(var(--acc), var(--acc)) 0 0 / 100% calc(var(--fill, 0) * 100%) no-repeat, rgb(255 255 255 / 0.1);
 }
-.storyIcon svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.storyApp { font-size: 12px; font-weight: 500; color: var(--ink-3); }
-.storyCount { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--ink-3); }
-
-.storyTitle { margin-top: 14px; font-size: 22px; font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; color: var(--ink); text-wrap: balance; }
-.storyBody { margin-top: 8px; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
-.storyStats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.storyRow:first-child::before { top: 12px; }
+.storyRow:last-child::before { bottom: 12px; }
+.storyRow[data-state='done'] { --fill: 1; }
+.storyRow[data-state='active'] { --fill: var(--sp, 0); }
+.storyRow time { padding-top: 1px; font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--text-2); transition: color 0.3s; }
+.storyRow h3 { font-size: 15px; font-weight: 500; line-height: 1.35; color: var(--text-2); transition: color 0.3s; }
+.storyRow[data-state='active'] time { color: var(--acc); }
+.storyRow[data-state='active'] h3 { font-size: 20px; line-height: 1.25; letter-spacing: -0.015em; color: var(--text); text-wrap: balance; }
+.storyCheck { width: 16px; height: 16px; margin-top: 2px; fill: none; stroke: var(--teal); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity 0.3s; }
+.storyRow[data-state='done'] .storyCheck { opacity: 1; }
+.storyMore { overflow: hidden; }
+.storyBody { margin-top: 6px; font-size: 14.5px; line-height: 1.5; color: rgb(233 239 239 / 0.88); text-wrap: pretty; }
+.storyStats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; padding-bottom: 2px; }
 .storyStat {
-  padding: 5px 11px;
-  border-radius: 999px;
-  background: var(--teal-tint);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--teal-ink);
-  white-space: nowrap;
+  padding: 4px 10px; border-radius: 999px; white-space: nowrap;
+  font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums;
+  color: var(--text); background: rgb(255 255 255 / 0.06); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
 }
-
-/* Segmented progress (like stories): done segments full, the active one fills with scroll (--sp). */
-.storyContent { display: block; }
-.storyProgress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 16px; }
-.storyProgress span {
-  height: 3px;
-  border-radius: 3px;
-  background: linear-gradient(var(--teal), var(--teal)) 0 0 / calc(var(--fill, 0) * 100%) 100% no-repeat, var(--line);
-}
-.storyProgress span[data-state='done'] { --fill: 1; }
-.storyProgress span[data-state='active'] { --fill: var(--sp, 0); }
+.storyStat:first-child { color: var(--acc); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acc) 40%, transparent); }
 
 .title {
   font-size: clamp(44px, 5.6vw, 84px);
@@ -613,7 +602,8 @@
 @media (max-width: 767px) {
   /* Phones: the card sits under the nav; the spotlight centres lower, where the store is. */
   .story { top: 84px; left: 16px; width: calc(100% - 32px); transform: none; }
-  .storyTitle { font-size: 19px; }
+  .storyRow[data-state='active'] h3 { font-size: 18px; }
+  .storyRow { padding: 8px 0; }
   .storyBody { font-size: 14px; }
   .storyStats { display: none; }
   .diveTint { background: radial-gradient(ellipse 60% 34% at 50% 72%, transparent 30%, var(--tint) 100%); }

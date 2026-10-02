@@ -215,26 +215,10 @@ const STAGES: { at: number; step: number; card: Card; status: Status }[] = [
   { at: 0.8, step: 3, status: 'active', card: { kind: 'hours', state: '62.5 h verified today', store: DIVE_STORE_NAME, meta: 'Ready for billing · 0 disputes' } },
 ];
 const STEPS = [
-  {
-    title: 'The roster comes first', icon: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
-    body: 'Before anyone arrives, OpsPro already knows who should be on the floor from 10:00 to 21:00.',
-    stats: ['Shift 10:00–21:00', '6 of 10 in'],
-  },
-  {
-    title: 'Clock-ins get checked at the door', icon: 'M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10zM12 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',
-    body: "The selfie has to match the picker's photo and the phone has to be within 200\u00a0m of the store, so a borrowed phone doesn't get anyone far.",
-    stats: ['Selfie match 0.94', '38 m from the door'],
-  },
-  {
-    title: "If someone doesn't show, you hear about it", icon: 'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0',
-    body: 'The alert goes out as the shift starts, so a reliever can be on the way before the store notices the gap.',
-    stats: ['Alert at 10:01', 'Reliever in 12 min'],
-  },
-  {
-    title: 'The hours are already checked', icon: 'M6 3h9l4 4v14H6zM9.5 14l2 2 4-4.5',
-    body: 'Hours get verified day by day, so at month end the vendor invoice and your report say the same thing.',
-    stats: ['62.5 h verified', '0 disputes'],
-  },
+  { time: '09:30', title: 'The roster is set', body: 'Ten pickers due, 10:00 to 21:00.', stats: ['6 of 10 in'] },
+  { time: '09:58', title: 'Every clock-in is checked', body: 'The selfie has to match and the phone has to be at the store.', stats: ['Match 0.94', '38 m away'] },
+  { time: '10:01', title: 'A no-show, caught at 10:01', body: 'A reliever is on the way before the store notices.', stats: ['Reliever in 12 min'] },
+  { time: '21:00', title: 'The hours are already checked', body: 'Your report and the vendor’s invoice say the same thing.', stats: ['62.5 h verified', '0 disputes'] },
 ];
 
 export default function Hero() {
@@ -300,47 +284,48 @@ export default function Hero() {
       {/* Spotlight for the dive: the edges dim in a colour that follows the story, the store stays bright. */}
       <div className={s.diveTint} data-stage={stage} aria-hidden="true" />
 
-      {/* The story told during the dive: one notification per step, sliding in and away. */}
+      {/* The story told during the dive: a dark shift log, the one dark object on the map. Each step is a timestamped
+          entry on a rail that fills with scroll; past entries collapse to a line, the current one opens. */}
       <div ref={story} className={s.story} aria-live="polite">
         <AnimatePresence>
           {beat && (
-            // One card for the whole story: it enters once and leaves once; only its content changes per step.
-            <motion.div key="story" layout className={s.storyCard}
+            <motion.div key="story" className={s.storyCard} data-step={beat.step}
               initial={{ opacity: 0, y: 56, scale: 0.95, filter: 'blur(8px)' }}
               animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
               exit={{ opacity: 0, y: -40, scale: 0.95, filter: 'blur(6px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } }}
-              transition={{ type: 'spring', duration: 0.6, bounce: 0.16, layout: { type: 'spring', duration: 0.45, bounce: 0.1 } }}>
-              <motion.div layout="position" className={s.storyHead}>
-                <span className={s.storyIcon} aria-hidden="true">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.svg key={beat.step} viewBox="0 0 24 24" width="18" height="18"
-                      initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}
-                      transition={{ duration: 0.25 }}>
-                      <path d={STEPS[beat.step].icon} />
-                    </motion.svg>
-                  </AnimatePresence>
-                </span>
-                <span className={s.storyApp}>OpsPro · How a shift runs</span>
-                <span className={s.storyCount}>0{beat.step + 1} / 0{STEPS.length}</span>
-              </motion.div>
-              <AnimatePresence mode="popLayout" initial={false}>
-                <motion.div key={beat.step} className={s.storyContent}
-                  initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: -18, filter: 'blur(6px)', transition: { duration: 0.2 } }}
-                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
-                  <h3 className={s.storyTitle}>{STEPS[beat.step].title}</h3>
-                  <p className={s.storyBody}>{STEPS[beat.step].body}</p>
-                  <div className={s.storyStats}>
-                    {STEPS[beat.step].stats.map((x) => <span key={x} className={s.storyStat}>{x}</span>)}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-              <motion.div layout="position" className={s.storyProgress} aria-hidden="true">
-                {STEPS.map((_, i) => (
-                  <span key={i} data-state={i < beat.step ? 'done' : i === beat.step ? 'active' : 'todo'} />
-                ))}
-              </motion.div>
+              transition={{ type: 'spring', duration: 0.6, bounce: 0.16 }}>
+              <div className={s.storyHead}>
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" fill="none" stroke="var(--teal)" strokeWidth="2.4" strokeDasharray="4.2 2.4" />
+                  <circle cx="12" cy="12" r="4" fill="#F2F6F6" />
+                </svg>
+                <b>Shift log</b>{DIVE_STORE_NAME}
+                <span>{beat.step + 1} of {STEPS.length}</span>
+              </div>
+              <ol className={s.storyLog}>
+                {STEPS.map((st, i) => {
+                  const state = i < beat.step ? 'done' : i === beat.step ? 'active' : 'todo';
+                  return (
+                    <li key={st.title} className={s.storyRow} data-state={state}>
+                      <time>{st.time}</time>
+                      <div>
+                        <h3>{st.title}</h3>
+                        <AnimatePresence initial={false}>
+                          {state === 'active' && (
+                            <motion.div key="more" className={s.storyMore}
+                              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
+                              <p className={s.storyBody}>{st.body}</p>
+                              <div className={s.storyStats}>{st.stats.map((x) => <span key={x} className={s.storyStat}>{x}</span>)}</div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      <svg className={s.storyCheck} viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+                    </li>
+                  );
+                })}
+              </ol>
             </motion.div>
           )}
         </AnimatePresence>
