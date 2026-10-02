@@ -152,19 +152,6 @@ const LINKS = [
   { href: '#contact', label: 'Contact' },
 ];
 
-/** Current time in Dubai, the timezone the ops dashboard runs on. Blank until mounted (no hydration mismatch). */
-function DubaiClock() {
-  const [time, setTime] = useState('');
-  useEffect(() => {
-    const fmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Dubai', hour: '2-digit', minute: '2-digit', hour12: false });
-    const tick = () => setTime(fmt.format(new Date()));
-    const first = window.setTimeout(tick, 0);
-    const id = window.setInterval(tick, 10_000);
-    return () => { clearTimeout(first); clearInterval(id); };
-  }, []);
-  return <span className={s.clock}>Dubai<span className={s.clockTime}>{time || '--:--'}</span>GST</span>;
-}
-
 /** Floating nav: no bar or background. Links are centred on the page, and a glass pill slides between them on hover. */
 function Nav() {
   const [hovered, setHovered] = useState<string | null>(null);
@@ -179,8 +166,6 @@ function Nav() {
           </svg>
           OpsPro
         </Link>
-        <span className={s.navDivider} aria-hidden="true" />
-        <DubaiClock />
       </div>
 
       <nav className={s.links} aria-label="Main" onMouseLeave={() => setHovered(null)}>

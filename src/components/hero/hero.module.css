@@ -79,9 +79,6 @@
 }
 .logoMark { width: 22px; height: 22px; transition: transform 0.6s var(--ease-out); }
 .logo:hover .logoMark { transform: rotate(90deg); }
-.navDivider { width: 1px; height: 16px; background: var(--line-2); }
-.clock { display: inline-flex; gap: 6px; font-size: 13px; color: var(--ink-3); white-space: nowrap; }
-.clockTime { color: var(--ink); font-weight: 500; }
 
 .links { display: flex; gap: 2px; justify-self: center; }
 .link {
@@ -610,7 +607,7 @@
   .card[data-featured] { width: 300px; }
   .nav { padding: 0 16px; }
   .nav { grid-template-columns: 1fr auto; }
-  .links, .navDivider, .clock { display: none; }
+  .links { display: none; }
   .copy { padding: 112px 16px 0; }
   .sub { font-size: 17px; }
   .fade { background: var(--fade-mobile); }
