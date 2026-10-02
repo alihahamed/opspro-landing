@@ -126,7 +126,7 @@ function Counter({ n }: { n: number }) {
  * The one CTA, with a hover that acts out a clock-in: the dashed geofence ring closes, fills and
  * gets a ✓, while the label rolls letter by letter to the next step. CSS only (see hero.module.css).
  */
-function ClockInButton({ href, label, next }: { href: string; label: string; next: string }) {
+export function ClockInButton({ href, label, next }: { href: string; label: string; next: string }) {
   const letters = (text: string) =>
     [...text].map((ch, i) => (
       <span key={i} style={{ '--i': i } as CSSProperties}>{ch === ' ' ? ' ' : ch}</span>
