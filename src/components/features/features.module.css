@@ -68,7 +68,8 @@
 }
 @keyframes flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 1; } }
 
-/* Callout cards: solid ink, no icon. A small label names the dashboard element the line ends on.
+/* Callout cards: the same dark treatment as the hero's shift log (ink gradient, top highlight, outer ring),
+   white heading, bright body. The heading names the dashboard element the line ends on.
    Desktop: they float off the frame's sides, never closer than 24px to the viewport edge,
    and animate in by sliding outward from the frame so nothing crosses the viewport edge. */
 .cards { list-style: none; margin: 0; padding: 0; }
@@ -76,15 +77,15 @@
   position: absolute;
   width: clamp(200px, calc((100vw - 1200px) / 2 + 150px), 248px); /* narrows with the side margin so it never covers the laptop */
   padding: 16px 18px 17px;
-  border-radius: 14px;
-  background: var(--ink);
-  box-shadow: 0 1px 0 rgb(255 255 255 / 0.08) inset, var(--shadow-3);
-  font-size: 14px; line-height: 1.45; color: rgb(255 255 255 / 0.74);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #182727, var(--ink) 70%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 0 1px rgb(15 26 26 / 0.5), 0 24px 50px -16px rgb(15 26 26 / 0.55);
+  font-size: 14px; line-height: 1.5; color: rgb(233 239 239 / 0.86);
   text-wrap: pretty;
 }
 .card[data-side='left'] { left: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
 .card[data-side='right'] { right: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
-.label { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 500; color: var(--teal-line); letter-spacing: 0.01em; }
+.label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: #F2F6F6; }
 
 /* Narrower screens: no room at the sides, so the cards stack under the frame and the wires go. */
 @media (max-width: 1279px) {
