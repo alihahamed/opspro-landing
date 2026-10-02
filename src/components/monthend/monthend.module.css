@@ -20,3 +20,31 @@
 }
 .sub { max-width: 400px; font-size: 17px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty; }
 
+/* ---------- the stage: last months' sheets behind, September in front, the notice slot in its footer ---------- */
+.stage {
+  --cols: 200px minmax(0, 1fr) 236px 132px;
+  position: relative;
+  width: calc(100% - 48px); max-width: 1200px; margin: 48px auto 0; /* 48px: room for the sheets peeking above */
+  font-variant-numeric: tabular-nums;
+  /* the "desk": reports rise out from a line 40px under the report, so they emerge instead of fading in */
+  clip-path: inset(-160px -240px -40px -240px);
+}
+.front { position: relative; z-index: 1; }
+/* soft contact shadow on the "desk" under the stack */
+.stage::before {
+  content: '';
+  position: absolute; left: 6%; right: 6%; bottom: -36px; height: 72px;
+  background: radial-gradient(50% 50% at 50% 50%, rgb(15 26 26 / 0.28), transparent);
+  filter: blur(12px);
+  pointer-events: none;
+}
+.sheet {
+  position: absolute; inset: 0;
+  border-radius: 24px;
+  border: 1px solid var(--line-2);
+  transform-origin: 50% 0;
+}
+.sheet span { position: absolute; top: 0; left: 32px; right: 32px; display: flex; justify-content: space-between; font-size: 12px; line-height: 24px; }
+.sheet b { font-weight: 500; color: var(--ink-2); }
+.sheet em { display: flex; align-items: center; gap: 4px; font-style: normal; font-weight: 500; color: var(--teal-ink); }
+.sheet svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
