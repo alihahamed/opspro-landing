@@ -332,7 +332,7 @@ export default function Hero() {
           OpsPro records when each picker arrives and leaves, confirmed by selfie and location, so month-end reports match what happened in the stores.
         </p>
         <div className={s.ctas} data-intro="rise">
-          <ClockInButton href="#demo" label="Book a live demo" next="Pick a time" />
+          <ClockInButton href="#book-demo" label="Book a live demo" next="Pick a time" />
         </div>
         <p className={s.live} data-intro="rise">
           <span className={s.liveDot} aria-hidden="true" />
