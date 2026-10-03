@@ -147,9 +147,9 @@ export function ClockInButton({ href, label, next }: { href: string; label: stri
 
 const LINKS = [
   { href: '#product', label: 'Product' },
-  { href: '#how', label: 'How it works' },
-  { href: '#vendors', label: 'For vendors' },
-  { href: '#contact', label: 'Contact' },
+  { href: '#month-end', label: 'Month-end' },
+  { href: '#face-check', label: 'Selfie check' },
+  { href: '#rules', label: 'Rules' },
 ];
 
 /** Floating nav: no bar or background. Links are centred on the page, and a glass pill slides between them on hover. */
