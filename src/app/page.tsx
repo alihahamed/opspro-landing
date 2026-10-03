@@ -5,6 +5,7 @@ import FaceCheck from "@/components/facecheck/FaceCheck";
 import Rules from "@/components/rules/Rules";
 import Cta from "@/components/cta/Cta";
 import Footer from "@/components/footer/Footer";
+import DemoSheet from "@/components/demo/DemoSheet";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <Cta />
     </main>
     <Footer />
+    <DemoSheet />
     </>
   );
 }
