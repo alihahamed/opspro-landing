@@ -219,7 +219,14 @@ export default function Hero() {
 
   useGSAP(() => {
     gsap.set('[data-intro]', { autoAlpha: 1 });
-    if (reducedMotion()) return;
+    // the nav lives outside the hero (fixed to the viewport); once the hero is behind you it becomes a glass pill
+    const nav = document.querySelector<HTMLElement>('header[data-intro="nav"]');
+    const solid = (on: boolean) => nav?.toggleAttribute('data-solid', on);
+    gsap.set(nav, { autoAlpha: 1 });
+    if (reducedMotion()) {
+      ScrollTrigger.create({ trigger: root.current, start: 'bottom 80px', onEnter: () => solid(true), onLeaveBack: () => solid(false) });
+      return;
+    }
     SplitText.create('[data-intro="title"]', {
       type: 'lines',
       mask: 'lines',
@@ -227,7 +234,7 @@ export default function Hero() {
       onSplit: (self) => gsap.from(self.lines, { yPercent: 100, duration: 1, ease: 'expo.out', stagger: 0.06 }),
     });
     gsap.from('[data-intro="rise"]', { y: 24, autoAlpha: 0, duration: 0.6, ease: 'expo.out', stagger: 0.06, delay: 0.3 });
-    gsap.from('[data-intro="nav"]', { y: -8, autoAlpha: 0, duration: 0.6, ease: 'expo.out' });
+    gsap.from(nav, { y: -8, autoAlpha: 0, duration: 0.6, ease: 'expo.out' });
 
     root.current!.style.setProperty('--exit', '0'); // no bottom fade until the hero starts to leave
 
@@ -236,6 +243,7 @@ export default function Hero() {
     gsap.timeline({
       scrollTrigger: {
         trigger: root.current, start: 'top top', end: '+=320%', pin: true, scrub: 0.6,
+        onLeave: () => solid(true), onEnterBack: () => solid(false),
         onUpdate: (st) => {
           dive.current = st.progress;
           const next = STAGES.findLastIndex((x) => st.progress >= x.at);
@@ -262,6 +270,8 @@ export default function Hero() {
   const shownStatuses = beat ? { ...statuses, [DIVE_STORE]: beat.status } : statuses;
 
   return (
+    <>
+    <Nav />
     <section ref={root} className={s.hero}>
       <div className={s.mapLayer} role="region" aria-label="Live preview: delivery bikes across Dubai and stores lighting up as pickers clock in">
         <HeroMap statuses={shownStatuses} cards={shownCards} eligible={eligible} dive={dive} diveStore={DIVE_STORE} />
@@ -324,7 +334,6 @@ export default function Hero() {
       {/* The map melts into the page at the bottom, so the next section starts without a hard edge. */}
       <div className={s.bottomFade} aria-hidden="true" />
 
-      <Nav />
 
       <div ref={copy} className={s.copy}>
         <h1 className={s.title} data-intro="title">Know who&apos;s on the floor at every store.</h1>
@@ -341,5 +350,6 @@ export default function Hero() {
         </p>
       </div>
     </section>
+    </>
   );
 }
