@@ -180,9 +180,10 @@ function Nav() {
         ))}
       </nav>
 
-      <a href="https://app.opspro.ae" className={s.login}>
-        Log in
-        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" /></svg>
+      {/* the page's one action; Log in lives in the closing CTA and the footer */}
+      <a href="#book-demo" className={s.navCta}>
+        Book a demo
+        <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg>
       </a>
     </header>
   );
