@@ -180,7 +180,7 @@ function Nav() {
         ))}
       </nav>
 
-      {/* the page's one action; Log in lives in the closing CTA and the footer */}
+      {/* the page's one action; Log in lives in the footer */}
       <a href="#book-demo" className={s.navCta}>
         Book a demo
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 8h9M9 4.5 12.5 8 9 11.5" /></svg>
