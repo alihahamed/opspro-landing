@@ -3,7 +3,7 @@
 // Closing CTA: one blunt question, the same clock-in button as the hero. Around it, the answer: live clock-in
 // notifications floating at three depths. Behind them, a line drawing of the hero's Dubai map (the same baked
 // scooter routes and stores) with teal pulses running along the roads. Scrolling through moves each depth at its
-// own speed (parallax, scrubbed, never pinned). The hero's "Book a live demo" links here (#demo).
+// own speed (parallax, scrubbed, never pinned).
 // All names and numbers are invented.
 import { useRef, type CSSProperties } from 'react';
 import gsap from 'gsap';
@@ -17,8 +17,7 @@ import s from './cta.module.css';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
-// ponytail: placeholder target until there's a booking link or contact address to send people to
-const DEMO_HREF = '#demo';
+const DEMO_HREF = '#book-demo'; // opens the demo sheet
 
 // d: depth (1 far … 3 near). x/y: % of the section (r = measured from the right). m: shown on phones, at mx/my.
 type Chip = { t: string; v: string; d: 1 | 2 | 3; x: number; y: number; r?: boolean; m?: [number, number]; tone?: 'amber' };
@@ -106,7 +105,6 @@ export default function Cta() {
       </p>
       <div className={s.actions} data-rise>
         <ClockInButton href={DEMO_HREF} label="Book a live demo" next="Pick a time" />
-        <p className={s.login}>Already on OpsPro? <a href="https://app.opspro.ae">Log in</a></p>
       </div>
     </section>
   );
