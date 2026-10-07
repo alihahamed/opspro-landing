@@ -286,6 +286,8 @@
   letter-spacing: -0.04em;
   text-wrap: balance;
 }
+/* SplitText's line masks clip at the line box; pad them so descenders (the g in "working") aren't cut */
+.title > div { padding-bottom: 0.12em; margin-bottom: -0.12em; }
 
 .sub {
   max-width: 54ch; /* two even lines at desktop sizes, no orphaned last word */
