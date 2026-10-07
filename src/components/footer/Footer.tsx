@@ -11,7 +11,7 @@ import s from './footer.module.css';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const COLS = [
-  { title: 'Product', links: [['Live dashboard', '#product'], ['Selfie check', '#face-check'], ['The rules', '#rules'], ['Month-end', '#month-end'], ['The four apps', '#apps']] },
+  { title: 'Product', links: [['Live dashboard', '#product'], ['Roster', '#roster'], ['Selfie check', '#face-check'], ['The rules', '#rules'], ['Month-end', '#month-end'], ['The four apps', '#apps']] },
   { title: 'OpsPro', links: [['Book a live demo', '#book-demo'], ['Log in', 'https://app.opspro.ae']] },
 ];
 

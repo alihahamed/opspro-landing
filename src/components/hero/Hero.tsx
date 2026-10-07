@@ -147,6 +147,7 @@ export function ClockInButton({ href, label, next }: { href: string; label: stri
 
 const LINKS = [
   { href: '#product', label: 'Product' },
+  { href: '#roster', label: 'Roster' },
   { href: '#face-check', label: 'Selfie check' },
   { href: '#rules', label: 'Rules' },
   { href: '#month-end', label: 'Month-end' },
