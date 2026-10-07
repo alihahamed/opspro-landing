@@ -120,7 +120,7 @@ export default function Rules() {
           </li>
 
           <li className={s.rule} data-rule="docs" data-step="1">
-            <p className={s.meta}><b>Document expiry</b>Passport, visa, Emirates ID and health card, for every picker.</p>
+            <p className={s.meta}><b>Document expiry</b>Passport, visa, Emirates ID and health card, for every worker.</p>
             <p className={s.line}>
               The visa for <Who i="FA" n="Faisal A." /> runs out in <Pill v={`${VISA} days`} w="5ch" />.{' '}
               <span className={s.soft}>You see it with time left to renew.</span>
@@ -128,7 +128,7 @@ export default function Rules() {
           </li>
 
           <li className={s.rule} data-rule="proj" data-step="1">
-            <p className={s.meta}><b>Billable days</b>Projected from the roster, one per scheduled picker-day.</p>
+            <p className={s.meta}><b>Billable days</b>Projected from the roster, one per scheduled worker-day.</p>
             <p className={s.line}>
               November comes to <Pill v={num(DAYS - 1)} w="3.8ch"><i className={s.badge}>−1</i></Pill> billable days.{' '}
               <span className={s.soft}>Cancel a shift and it drops out of the count.</span>

@@ -145,7 +145,7 @@ export default function FaceCheck() {
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#00CCBC" strokeWidth="2.4" strokeDasharray="4.2 2.4" /><circle cx="12" cy="12" r="4" fill="#0F1A1A" stroke="none" /></svg>
                     OpsPro
                   </p>
-                  <div className={s.ws}><i>W</i><span><b>WokeWorks Ops</b>117 stores · UAE</span><Icon n="updown" /></div>
+                  <div className={s.ws}><i>W</i><span><b>WokeWorks Ops</b>117 locations · UAE</span><Icon n="updown" /></div>
                   {NAV.map(([group, items]) => (
                     <div key={group}>
                       <p className={s.group}>{group}</p>
@@ -160,7 +160,7 @@ export default function FaceCheck() {
                 <div className={s.canvas}>
                   <div className={s.top}>
                     <b>Alerts</b><span className={s.live}>Live</span><span className={s.date}>Thu 1 Oct · 10:03 GST</span>
-                    <span className={s.search}><Icon n="search" />Search pickers<kbd>⌘K</kbd></span>
+                    <span className={s.search}><Icon n="search" />Search workers<kbd>⌘K</kbd></span>
                     <span className={s.sup}>All supervisors<Icon n="down" /></span>
                   </div>
                   <div className={s.filters}>
@@ -209,7 +209,7 @@ export default function FaceCheck() {
                       <div className={s.pTop}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
                         <img src="/people/photo-on-file.webp" alt="" />
-                        <p className={s.pWho}><b>Saeed S.</b>Picker · Carrefour Market JVC 15 · OP-0412</p>
+                        <p className={s.pWho}><b>Saeed S.</b>Worker · Carrefour Market JVC 15 · OP-0412</p>
                         <span className={s.status}>
                           <em className={s.sIdle}>Checking</em><em className={s.sFlag}><Icon n="face" />Needs a look</em><em className={s.sDone}><Icon n="check" />Resolved</em>
                         </span>
@@ -264,7 +264,7 @@ export default function FaceCheck() {
           </div>
           <div className={s.base} />
         </div>
-        <p className={s.macLabel}>On the supervisor’s dashboard</p>
+        <p className={s.macLabel}>Ops dashboard</p>
 
         {/* the picker's phone, in front of the laptop */}
         <div className={s.phoneWrap}>
@@ -272,7 +272,7 @@ export default function FaceCheck() {
           <span className={s.btnL} /><span className={s.btnL2} /><span className={s.btnR} />
           <div className={s.screen}>
             {/* eslint-disable @next/next/no-img-element -- static screen captures of the app */}
-            <img data-screen="clock-in" src="/app/clock-in.webp" alt="OpsPro Picker app: today's store and the Clock in button" />
+            <img data-screen="clock-in" src="/app/clock-in.webp" alt="OpsPro worker app: today's location and the Clock in button" />
             <img data-screen="selfie" src="/app/selfie.webp" alt="" />
             <img data-screen="on-shift" src="/app/on-shift.webp" alt="" />
             <img data-screen="shift-done" src="/app/shift-done.webp" alt="" />
@@ -283,7 +283,7 @@ export default function FaceCheck() {
             <span className={s.island} aria-hidden="true" />
           </div>
         </div>
-        <p className={s.label}>On the picker’s phone</p>
+        <p className={s.label}>Worker app</p>
         </div>
       </div>
     </section>

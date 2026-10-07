@@ -437,7 +437,7 @@ export default function HeroMap({ statuses, cards, eligible, dive, diveStore }: 
                       <span className={s.cardTitle}>{st.name}</span>
                       <span className={s.cardMeta}>{st.area}</span>
                       <span className={s.detailStats}>
-                        <span><span className={s.statNum}>{inCount}/{total}</span> pickers on shift</span>
+                        <span><span className={s.statNum}>{inCount}/{total}</span> workers on shift</span>
                         <span><span className={s.statNum}>{orders[st.id]}</span> orders picked</span>
                       </span>
                     </span>

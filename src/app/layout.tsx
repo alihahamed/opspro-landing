@@ -13,9 +13,9 @@ const satoshi = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "OpsPro · Live workforce ops for store pickers",
+  title: "OpsPro · Attendance, rosters and payroll-ready hours for shift teams",
   description:
-    "See who is on the floor at every store across the UAE, verified by location and selfie, and turned into hours you can bill.",
+    "See who's working at every location across the UAE, checked by selfie and location, with rosters, your attendance rules and vendor costs in one system.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -44,7 +44,7 @@ function useShiftSim(eligible: RefObject<Map<string, number>>, dive: RefObject<n
     if (reducedMotion()) {
       at(0, () => {
         setStatuses(Object.fromEntries(stores.map((st) => [st.id, 'active'])));
-        setCards({ [stores[0].id]: { kind: 'in', state: 'Picker clocked in', store: `${stores[0].brand} ${stores[0].name}`, meta: 'Selfie verified · 6/10 on shift' } });
+        setCards({ [stores[0].id]: { kind: 'in', state: 'Worker clocked in', store: `${stores[0].brand} ${stores[0].name}`, meta: 'Selfie verified · 6/10 on shift' } });
         setOnShift(112);
       });
       return stop;
@@ -78,11 +78,11 @@ function useShiftSim(eligible: RefObject<Map<string, number>>, dive: RefObject<n
         open.add(st.id);
         // The moments OpsPro watches for: a verified clock-in, a late picker, a no-show covered by a reliever.
         if (roll < 0.5) {
-          setCard(st.id, { kind: 'in', state: 'Picker clocked in', store, meta: `Selfie verified · ${Math.min(total, inCount + 1)}/${total} on shift` });
+          setCard(st.id, { kind: 'in', state: 'Worker clocked in', store, meta: `Selfie verified · ${Math.min(total, inCount + 1)}/${total} on shift` });
           close(3800);
         } else if (roll < 0.75) {
           setStatus(st.id, 'late');
-          setCard(st.id, { kind: 'late', state: `Picker ${12 + Math.floor(Math.random() * 30)} min late`, store, meta: 'Clocked in after the 10:00 start' });
+          setCard(st.id, { kind: 'late', state: `Worker ${12 + Math.floor(Math.random() * 30)} min late`, store, meta: 'Clocked in after the 10:00 start' });
           close(4400);
         } else {
           setStatus(st.id, 'noshow');
@@ -147,9 +147,10 @@ export function ClockInButton({ href, label, next }: { href: string; label: stri
 
 const LINKS = [
   { href: '#product', label: 'Product' },
-  { href: '#month-end', label: 'Month-end' },
   { href: '#face-check', label: 'Selfie check' },
   { href: '#rules', label: 'Rules' },
+  { href: '#month-end', label: 'Month-end' },
+  { href: '#apps', label: 'Apps' },
 ];
 
 /** Floating nav: no bar or background. Links are centred on the page, and a glass pill slides between them on hover. */
@@ -194,16 +195,16 @@ function Nav() {
 const DIVE_STORE = 'circle-mall';
 const DIVE_STORE_NAME = 'Spinneys Circle Mall JVC';
 const STAGES: { at: number; step: number; card: Card; status: Status }[] = [
-  { at: 0.1, step: 0, status: 'active', card: { kind: 'in', state: 'Shift started · 10:00', store: DIVE_STORE_NAME, meta: '6 of 10 pickers clocked in' } },
+  { at: 0.1, step: 0, status: 'active', card: { kind: 'in', state: 'Shift started · 10:00', store: DIVE_STORE_NAME, meta: '6 of 10 workers clocked in' } },
   { at: 0.34, step: 1, status: 'active', card: { kind: 'in', state: 'Clocked in at 09:58', store: DIVE_STORE_NAME, meta: 'Selfie matched · inside the 200\u00a0m geofence' } },
   { at: 0.58, step: 2, status: 'noshow', card: { kind: 'noshow', state: 'No-show on 10:00 shift', store: DIVE_STORE_NAME, meta: 'Alert sent to the supervisor' } },
   { at: 0.69, step: 2, status: 'active', card: { kind: 'reliever', state: 'Reliever sent', store: DIVE_STORE_NAME, meta: 'Arriving in 12 min' } },
   { at: 0.8, step: 3, status: 'active', card: { kind: 'hours', state: '62.5 h verified today', store: DIVE_STORE_NAME, meta: 'Ready for billing · 0 disputes' } },
 ];
 const STEPS = [
-  { time: '09:30', title: 'The roster is set', body: 'Ten pickers due, 10:00 to 21:00.', stats: ['6 of 10 in'] },
-  { time: '09:58', title: 'Every clock-in is checked', body: 'The selfie has to match and the phone has to be at the store.', stats: ['Match 0.94', '38 m away'] },
-  { time: '10:01', title: 'A no-show, caught at 10:01', body: 'A reliever is on the way before the store notices.', stats: ['Reliever in 12 min'] },
+  { time: '09:30', title: 'The roster is set', body: 'Ten workers due, 10:00 to 21:00.', stats: ['6 of 10 in'] },
+  { time: '09:58', title: 'Every clock-in is checked', body: 'The face has to match and the phone has to be inside the geofence.', stats: ['Match 0.94', '38 m away'] },
+  { time: '10:01', title: 'A no-show, caught at 10:01', body: 'Cover is on the way before the shift lead notices the gap.', stats: ['Reliever in 12 min'] },
   { time: '21:00', title: 'The hours are already checked', body: 'Your report and the vendor’s invoice say the same thing.', stats: ['62.5 h verified', '0 disputes'] },
 ];
 
@@ -273,7 +274,7 @@ export default function Hero() {
     <>
     <Nav />
     <section ref={root} className={s.hero}>
-      <div className={s.mapLayer} role="region" aria-label="Live preview: delivery bikes across Dubai and stores lighting up as pickers clock in">
+      <div className={s.mapLayer} role="region" aria-label="Live preview: delivery bikes across Dubai and locations lighting up as workers clock in">
         <HeroMap statuses={shownStatuses} cards={shownCards} eligible={eligible} dive={dive} diveStore={DIVE_STORE} />
       </div>
 
@@ -336,9 +337,9 @@ export default function Hero() {
 
 
       <div ref={copy} className={s.copy}>
-        <h1 className={s.title} data-intro="title">Know who&apos;s on the floor at every store.</h1>
+        <h1 className={s.title} data-intro="title">Know who&apos;s working at every location.</h1>
         <p className={s.sub} data-intro="rise">
-          OpsPro records when each picker arrives and leaves, confirmed by selfie and location, so month-end reports match what happened in the stores.
+          OpsPro records when each worker arrives and leaves, checked by selfie and location, so month-end numbers match what happened on the floor. Built for shift teams in retail, quick commerce, facilities and staffing.
         </p>
         <div className={s.ctas} data-intro="rise">
           <ClockInButton href="#book-demo" label="Book a live demo" next="Pick a time" />
@@ -346,7 +347,7 @@ export default function Hero() {
         <p className={s.live} data-intro="rise">
           <span className={s.liveDot} aria-hidden="true" />
           <Counter n={onShift} />
-          <span className={s.liveLabel}>&nbsp;/ {TOTAL} pickers on shift now</span>
+          <span className={s.liveLabel}>&nbsp;/ {TOTAL} workers on shift now</span>
         </p>
       </div>
     </section>

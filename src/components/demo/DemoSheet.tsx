@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import s from './demosheet.module.css';
 
 const ENDPOINT = process.env.NEXT_PUBLIC_DEMO_ENDPOINT;
-const TOPICS = ['Live attendance', 'Selfie check', 'Rosters', 'Overtime', 'Month-end reports', 'Relievers'];
+const TOPICS = ['Live attendance', 'Selfie check', 'Rosters', 'Leave', 'Overtime', 'Vendor costs'];
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -116,7 +116,7 @@ export default function DemoSheet() {
                 <label className={s.field}><span>Your name</span><input name="name" required autoComplete="name" /></label>
                 <label className={s.field}><span>Work email</span><input name="email" type="email" required autoComplete="email" /></label>
                 <label className={s.field}><span>Phone (optional)</span><input name="phone" type="tel" autoComplete="tel" /></label>
-                <label className={s.field}><span>How many stores?</span><input name="stores" type="number" min={1} inputMode="numeric" /></label>
+                <label className={s.field}><span>How many locations?</span><input name="stores" type="number" min={1} inputMode="numeric" /></label>
                 <label className={`${s.field} ${s.wide}`}><span>Anything we should know?</span><textarea name="message" rows={3} /></label>
               </div>
 

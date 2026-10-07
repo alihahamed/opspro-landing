@@ -11,7 +11,7 @@ import s from './footer.module.css';
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const COLS = [
-  { title: 'Product', links: [['Live dashboard', '#product'], ['Month-end reports', '#month-end'], ['Selfie check', '#face-check'], ['The rules', '#rules']] },
+  { title: 'Product', links: [['Live dashboard', '#product'], ['Selfie check', '#face-check'], ['The rules', '#rules'], ['Month-end', '#month-end'], ['The four apps', '#apps']] },
   { title: 'OpsPro', links: [['Book a live demo', '#book-demo'], ['Log in', 'https://app.opspro.ae']] },
 ];
 
@@ -42,7 +42,7 @@ export default function Footer() {
       <div className={s.inner}>
         <div className={s.top}>
           <div>
-            <p className={s.pitch}>Live attendance, rosters and payroll-ready hours for supermarket pickers across the UAE.</p>
+            <p className={s.pitch}>Attendance, rosters and payroll-ready hours for shift teams across the UAE.</p>
             <a className={s.demo} href="#book-demo">Book a live demo<span aria-hidden="true">→</span></a>
           </div>
           {COLS.map((c) => (

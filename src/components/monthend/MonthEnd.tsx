@@ -17,7 +17,7 @@ const DAYS = 30; // September
 const SHIFT = 8; // rostered hours per shift
 
 type Issue = { day: number; ver: number; problem: string; fix: string; icon: string };
-const PICKERS: { name: string; initials: string; off: number; issue?: Issue }[] = [
+const WORKERS: { name: string; initials: string; off: number; issue?: Issue }[] = [
   { name: 'Aisha K.', initials: 'AK', off: 0 },
   { name: 'Nimal P.', initials: 'NP', off: 2, issue: { day: 8, ver: 7.6, problem: 'Late 22 min', fix: 'Deducted by Sara M.', icon: 'M12 7.5V12l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' } },
   { name: 'Rohan T.', initials: 'RT', off: 4, issue: { day: 20, ver: 0, problem: 'No-show', fix: 'Musa B. covered the shift', icon: 'M15 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9 10.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4' } },
@@ -27,14 +27,14 @@ const PICKERS: { name: string; initials: string; off: number; issue?: Issue }[] 
 ];
 
 // verified hours per picker, cumulative by day (one day off a week, the issue day at its verified hours)
-const ROWS = PICKERS.map((p) => {
+const ROWS = WORKERS.map((p) => {
   const days = Array.from({ length: DAYS }, (_, d) => (p.issue?.day === d ? p.issue.ver : (d + p.off) % 7 === 6 ? null : SHIFT));
   const cum = [0];
   days.forEach((h) => cum.push(cum.at(-1)! + (h ?? 0)));
   return { ...p, cum, rostered: days.filter((h) => h !== null).length * SHIFT };
 });
 const ROSTERED = ROWS.reduce((a, r) => a + r.rostered, 0);
-const ISSUES = PICKERS.filter((p) => p.issue).map((p) => ({ ...p.issue!, name: p.name, initials: p.initials })).sort((a, b) => a.day - b.day);
+const ISSUES = WORKERS.filter((p) => p.issue).map((p) => ({ ...p.issue!, name: p.name, initials: p.initials })).sort((a, b) => a.day - b.day);
 
 const Tick = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" /></svg>;
 const hours = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -88,8 +88,8 @@ export default function MonthEnd() {
         <header className={s.head}>
           <h2 id="monthend-title" className={s.title} data-title>Nobody rebuilds timesheets on the 30th anymore.</h2>
           <p className={s.sub} data-rise>
-            The supervisor who was there sorts out late starts, no-shows and forgotten clock-outs on the same day.
-            By the 30th, the report just needs sending.
+            The supervisor who was there sorts out late starts, no-shows and missed clock-outs the same day.
+            By the 30th, the hours are approved and ready for payroll and vendor invoices.
           </p>
         </header>
 
@@ -98,7 +98,7 @@ export default function MonthEnd() {
             <div className={s.top}>
               <div>
                 <p className={s.docTitle}>September timesheet</p>
-                <p className={s.meta}>Spinneys Circle Mall JVC · {PICKERS.length} pickers</p>
+                <p className={s.meta}>Circle Mall JVC · {WORKERS.length} workers</p>
               </div>
               <span className={s.chip}><Tick /><span data-chip>Ready to send</span></span>
             </div>
@@ -133,8 +133,8 @@ export default function MonthEnd() {
                 <small>of {hours(ROSTERED)} h rostered</small>
               </p>
               <span className={s.send}>
-                <em className={s.sendIdle}>Send to finance</em>
-                <em className={s.sendDone}><Tick />Sent to finance · 30 Sep, 18:04</em>
+                <em className={s.sendIdle}>Close September</em>
+                <em className={s.sendDone}><Tick />Closed · statements sent to 3 vendors</em>
               </span>
             </div>
           </div>

@@ -17,10 +17,10 @@ const FRAME_INSET = 6; // 5px padding + 1px border between the frame edge and th
 // `at` is the anchor on the mockup, in % of the image (the image is exactly 3:2, like the frame).
 // `top` is where the card sits, in % of the frame height.
 const CALLOUTS = [
-  { side: 'left', top: 18, at: [27.4, 27.6], label: 'On the floor now', body: 'See who has clocked in at each store, updated as each picker arrives.' },
-  { side: 'left', top: 72, at: [40.5, 74.4], label: 'Selfie check', body: 'Pickers clock in with a selfie at the store. If the face doesn’t match, the clock-in waits for you.' },
+  { side: 'left', top: 18, at: [27.4, 27.6], label: 'On the floor now', body: 'See who’s clocked in at every location, updated the moment each worker arrives.' },
+  { side: 'left', top: 72, at: [40.5, 74.4], label: 'Selfie check', body: 'Workers clock in with a selfie on site. If the face doesn’t match, the clock-in waits for a person to check it.' },
   { side: 'right', top: 14, at: [76, 27.5], label: 'Verified hours', body: 'Each shift is checked against the roster when it ends, so the month-end report is already done.' },
-  { side: 'right', top: 58, at: [82.8, 52.5], label: 'No-show', body: 'If someone misses a shift, you hear about it within minutes and can send a reliever.' },
+  { side: 'right', top: 58, at: [82.8, 52.5], label: 'No-show', body: 'If someone misses a shift, you hear about it within minutes and can send cover.' },
 ] as const;
 
 export default function Features() {
