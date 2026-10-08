@@ -141,7 +141,7 @@ export default function Features() {
                     <div className={s.sideFoot}>
                       <div className={s.item}><Ic d={P.help} /><span>Help</span></div>
                       <div className={s.item}><Ic d={P.gear} /><span>Settings</span></div>
-                      <div className={s.org}><i>CR</i><span><b>Crescent Retail</b>8 locations</span><Ic d={P.updown} /></div>
+                      <div className={s.org}><i>A</i><span><b>Client A</b>8 locations</span><Ic d={P.updown} /></div>
                     </div>
                   </aside>
 
