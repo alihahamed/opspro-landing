@@ -1,4 +1,4 @@
-/* Apps: a full-bleed strip of four app screens; a teal line draws underneath and each screen lights up in turn. */
+/* Apps: two phones (the sick call and the cover), staggered, with a dashed line from one to the other. */
 
 .section { position: relative; padding: 140px 0 120px; overflow-x: clip; }
 .inner { width: calc(100% - 48px); max-width: 1200px; margin: 0 auto; }
@@ -11,44 +11,41 @@
 /* SplitText's line masks clip at the line box; pad them so descenders aren't cut */
 .title > div { padding-bottom: 0.12em; margin-bottom: -0.12em; }
 
-/* the strip spans the page edge to edge, centred */
-.scroller { margin-top: 72px; }
-.strip {
-  /* height that makes the four screens (2 phones + 2 wide = 3.76 heights, plus gaps) fit edge to edge in the page */
-  --h: clamp(260px, calc((100vw - 120px) / 3.76), 440px);
-  position: relative; left: 50%; translate: -50% 0;
-  width: max-content; display: flex; gap: 22px;
-}
-.track { position: absolute; left: 0; right: 0; top: calc(var(--h) + 20px); height: 2px; background: var(--line); }
-.line { position: absolute; inset: 0; background: var(--teal); transform-origin: 0 50%; }
-
-.item { flex: none; margin: 0; display: flex; flex-direction: column; }
-.shot {
-  height: var(--h); border-radius: 22px; overflow: hidden; background: var(--surface);
-  box-shadow: 0 0 0 1px var(--line), 0 24px 50px -28px rgb(15 26 26 / 0.3);
-  transition: opacity 0.7s var(--ease-out), filter 0.7s var(--ease-out), transform 0.7s var(--ease-out), box-shadow 0.7s var(--ease-out);
-}
-.shot img { display: block; width: auto; height: 100%; }
-/* not lit yet: dimmed and greyed, slightly smaller */
-.item:not([data-lit]) .shot { opacity: 0.45; filter: grayscale(1); transform: scale(0.97); }
-/* the screen the line just reached gets a teal ring and a lift */
-.item[data-current] .shot { transform: translateY(-6px); box-shadow: 0 0 0 2px var(--teal), 0 34px 60px -26px rgb(0 115 107 / 0.45); }
-
-.cap { display: flex; flex-direction: column; gap: 2px; width: 0; min-width: 100%; padding-top: 38px; }
+/* worker phone, the link, supervisor phone (lifted) */
+.stage { display: grid; grid-template-columns: auto 200px auto; grid-template-areas: 'a link b'; justify-content: center; align-items: center; margin-top: 96px; padding-top: 64px; }
+.item { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 28px; translate: 0 var(--lift); }
+.item:first-of-type { grid-area: a; }
+.item:nth-of-type(2) { grid-area: b; }
+.phone { --w: 300px; }
+.cap { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
 .cap time { margin-bottom: 4px; font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--teal-ink); }
 .cap b { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
-.cap span { font-size: 15px; line-height: 1.45; color: var(--ink-2); text-wrap: pretty; }
+.cap span { font-size: 15px; line-height: 1.45; color: var(--ink-2); }
 
-/* phones: a swipe row starting at the page edge */
-@media (max-width: 767px) {
-  .section { padding: 96px 0 88px; }
-  .inner { width: calc(100% - 40px); }
-  .scroller { margin-top: 44px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 8px; }
-  .scroller::-webkit-scrollbar { display: none; }
-  .strip { --h: 380px; left: 0; translate: none; padding: 0 20px; gap: 16px; }
-  .track { left: 20px; right: 20px; }
-  .item { scroll-snap-align: start; scroll-margin-left: 20px; }
+.link { grid-area: link; position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: -120px; }
+.link svg { width: 100%; height: auto; overflow: visible; }
+.path, .head { fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.path { stroke-dasharray: 0.035 0.03; }
+.pill {
+  display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 99px; white-space: nowrap;
+  font-size: 13.5px; font-weight: 500; color: var(--teal-ink);
+  background: linear-gradient(180deg, #F0FDFB, #D9F6F2); box-shadow: inset 0 0 0 1px var(--teal-line), inset 0 1px 0 #fff, 0 6px 14px -6px rgb(0 115 107 / 0.35);
 }
-@media (prefers-reduced-motion: reduce) {
-  .shot { transition: none; }
+
+@media (max-width: 899px) {
+  .stage { grid-template-columns: auto 72px auto; margin-top: 56px; padding-top: 40px; }
+  .phone { --w: 200px; }
+  .item { --lift: -36px; }
+  .item:first-of-type { translate: 0 0; }
+  .pill { display: none; }
+  .link { margin-top: -80px; }
+}
+@media (max-width: 599px) {
+  .section { padding: 96px 0 88px; }
+  .inner { width: calc(100% - 32px); }
+  .stage { grid-template-columns: auto 28px auto; }
+  .phone { --w: 142px; }
+  .cap { gap: 0; }
+  .cap b { font-size: 15px; }
+  .cap span { font-size: 13px; }
 }
