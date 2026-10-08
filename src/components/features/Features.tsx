@@ -101,11 +101,8 @@ export default function Features() {
 
       // play on the way in; reset once it's fully off screen above, so nothing vanishes while visible
       let armed = true;
-      ScrollTrigger.create({
-        trigger: board, start: 'top 75%', end: 'bottom top',
-        onEnter: () => { if (!armed) return; armed = false; reset(); tl.restart(); },
-        onLeaveBack: () => { tl.pause(0); reset(); armed = true; },
-      });
+      ScrollTrigger.create({ trigger: board, start: 'top 75%', onEnter: () => { if (!armed) return; armed = false; reset(); tl.restart(); } });
+      ScrollTrigger.create({ trigger: board, start: 'top bottom', onLeaveBack: () => { tl.pause(0); reset(); armed = true; } });
     });
   }, { scope: root });
 
