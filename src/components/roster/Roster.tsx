@@ -42,7 +42,6 @@ const I = {
   rel: <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.5" cy="5.5" r="2.5" /><path d="M2 13.5a4.5 4.5 0 0 1 9 0M12.5 5.5v4M10.5 7.5h4" /></svg>,
   check: <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" /></svg>,
   alert: <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4.6v4.2M8 11.2v.2" /></svg>,
-  store: <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6.5 3.6 3h8.8l1.1 3.5M2.5 6.5h11M2.5 6.5a1.8 1.8 0 0 0 3.7 0 1.8 1.8 0 0 0 3.6 0 1.8 1.8 0 0 0 3.7 0M3.5 8.5V13h9V8.5" /></svg>,
 };
 
 function Chip({ k }: { k: Kind }) {
@@ -76,30 +75,30 @@ export default function Roster() {
         onSplit: (self) => gsap.from(self.lines, { yPercent: 100, duration: 1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 70%', once: true } }),
       });
 
-      const SWEEP = 2.4; // seconds to cross the whole week, not counting stops
+      const SWEEP = 1.5; // seconds to cross the whole week, not counting stops
       const o = { n: 0 };
       const tl = gsap.timeline({ scrollTrigger: { trigger: board, start: 'top 75%', once: true } })
-        .from(board, { y: 56, autoAlpha: 0, duration: 1.1, ease: 'expo.out' })
-        .from(q('[data-chip]'), { scale: 0.8, autoAlpha: 0, duration: 0.45, ease: 'back.out(1.8)', stagger: 0.012 }, 0.35)
-        .call(() => say('Checking…'), [], 1.4)
-        .fromTo(scan, { x: days[0].offsetLeft, width: days[0].offsetWidth, autoAlpha: 0 }, { autoAlpha: 1, duration: 0.25 }, 1.4);
+        .from(board, { y: 48, autoAlpha: 0, duration: 0.9, ease: 'expo.out' })
+        .from(q('[data-chip]'), { scale: 0.85, autoAlpha: 0, duration: 0.4, ease: 'back.out(1.8)', stagger: 0.008 }, 0.25)
+        .call(() => say('Checking…'), [], 0.95)
+        .fromTo(scan, { x: days[0].offsetLeft, width: days[0].offsetWidth, autoAlpha: 0 }, { autoAlpha: 1, duration: 0.2 }, 0.95);
       // the check sweeps the week and stops at each clash: found, fixed, cleared, then on
-      let t = 1.6, at = 0;
+      let t = 1.1, at = 0;
       [...ISSUES, { day: 6 }].forEach((x, i) => {
         const seg = SWEEP * ((x.day - at) / 6);
         tl.to(scan, { x: days[x.day].offsetLeft, duration: seg, ease: 'none' }, t);
         t += seg; at = x.day;
         if (i === ISSUES.length) return;
         tl.call(() => { set(i, 'found'); say('Clash found'); }, [], t)
-          .call(() => { set(i, 'fixed'); say(`${i + 1} of ${ISSUES.length} fixed`); }, [], t + 1)
-          .call(() => set(i, 'done'), [], t + 2);
-        t += 2.1;
+          .call(() => { set(i, 'fixed'); say(`${i + 1} of ${ISSUES.length} fixed`); }, [], t + 0.75)
+          .call(() => set(i, 'done'), [], t + 1.45);
+        t += 1.5;
       });
       tl.to(scan, { autoAlpha: 0, duration: 0.3 }, t)
         .call(() => say('All clear'), [], t);
-      const PUB = t + 0.9;
+      const PUB = t + 0.5;
       tl.call(() => { board.dataset.published = 'true'; }, [], PUB)
-        .to(o, { n: WORKERS, duration: 1.6, ease: 'power2.out', onUpdate: () => say(`Seen by ${Math.round(o.n)} of ${WORKERS}`) }, PUB + 0.3);
+        .to(o, { n: WORKERS, duration: 1.2, ease: 'power2.out', onUpdate: () => say(`Seen by ${Math.round(o.n)} of ${WORKERS}`) }, PUB + 0.3);
     });
   }, { scope: root });
 
@@ -110,7 +109,7 @@ export default function Roster() {
 
         <div className={s.board} data-board data-published="true">
           <header className={s.bar}>
-            <span className={s.store}><i>{I.store}</i><span><b>Marina dark store</b>Roster for 5–11 October</span></span>
+            <span className={s.store}><i className={s.storePhoto} /><span><b>Marina dark store</b>Roster for 5–11 October</span></span>
             <span className={s.status} data-status aria-live="off">Seen by {WORKERS} of {WORKERS}</span>
             <span className={s.btn} aria-hidden="true"><em className={s.btnIdle}>Publish roster</em><em className={s.btnDone}>{I.check}Published</em></span>
           </header>
@@ -121,10 +120,10 @@ export default function Roster() {
               <span className={s.head} />
               {DAYS.map(([d, n]) => <span key={d} className={`${s.head} ${s.day}`} data-day><b>{d}</b>{n}</span>)}
 
-              {ROWS.map((r, ri) => (
+              {ROWS.map((r) => (
                 <div key={r.name} className={s.row}>
                   <span className={s.who}>
-                    <i data-tone={ri % 3}>{r.name.split(' ').map((w) => w[0]).join('')}</i>
+                    <i className={s.face} style={{ backgroundImage: `url(/people/${r.name.split(' ')[0].toLowerCase()}.webp)` }} />
                     <span><b>{r.name}</b>{r.role}</span>
                   </span>
                   {r.cells.map((c, j) => typeof c === 'object' ? (
