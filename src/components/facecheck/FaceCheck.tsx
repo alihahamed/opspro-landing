@@ -2,9 +2,9 @@
 
 // Face-check section: the picker's side and the supervisor's side of one clock-in. An iPhone plays the picker app
 // (screens rebuilt in Figma from the real OpsPro Picker app): tap Clock in, take the selfie, on shift, shift done.
-// Behind it, a MacBook shows the OpsPro dashboard's face-flag review (rebuilt from the Figma frame "OpsPro — Face flag
-// review" as live HTML, so it can animate): the close call lands in the queue, a cursor clicks Approve, and the flag
-// moves to "Resolved today". Plays when it scrolls into view, and again after scrolling back up past it. No scroll lock.
+// Behind it, a MacBook shows the OpsPro dashboard (same sidebar as the live board) with one centred review card on a
+// small stack of the ones still waiting: today's selfie beside the photo on file, a match dial between them. The close
+// call comes back "Not sure", a cursor clicks Approve, and the card settles as approved. Plays when it scrolls into view, and again after scrolling back up past it. No scroll lock.
 // People are stock photos of models; data is invented.
 import { useEffect, useRef, type ReactNode } from 'react';
 import gsap from 'gsap';
@@ -12,12 +12,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 import s from './facecheck.module.css';
+import lb from '../features/features.module.css'; // the live board's sidebar
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 // where the tappable controls sit on the 390×844 phone screens (from the Figma frames)
-const CLOCK_IN = { x: '50%', y: '68.96%' };
-const SHUTTER = { x: '50%', y: '88.15%' };
+const CLOCK_IN = { x: '50%', y: '75.97%' };
+const SHUTTER = { x: '50%', y: '86.96%' };
 const UI_W = 1120; // the dashboard is laid out at 1120×700 and scaled to fit the laptop screen
 
 const PATHS: Record<string, ReactNode> = {
@@ -39,25 +40,13 @@ const PATHS: Record<string, ReactNode> = {
   cross: <path d="m6.5 6.5 11 11M17.5 6.5l-11 11" />,
 };
 const Icon = ({ n }: { n: string }) => <svg viewBox="0 0 24 24" aria-hidden="true">{PATHS[n]}</svg>;
+const Mark = ({ dot = '#fff' }: { dot?: string }) => <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#00CCBC" strokeWidth="2.4" strokeDasharray="4.2 2.4" /><circle cx="12" cy="12" r="4" fill={dot} stroke="none" /></svg>;
 // a number that changes once the flag is resolved
 const Swap = ({ a, b }: { a: string; b: string }) => <><span className={s.pre}>{a}</span><span className={s.post}>{b}</span></>;
 
-const NAV: [string, [string, string, ReactNode?, boolean?][]][] = [
-  ['Operations', [['Live dashboard', 'grid'], ['Alerts', 'bell', <Swap key="n" a="47" b="46" />, true], ['Employees', 'users'], ['Locations', 'pin']]],
-  ['Schedule', [['Roster', 'cal'], ['OT verification', 'clock', '10'], ['Reports', 'chart'], ['Projected days', 'trend']]],
-  ['Admin', [['Add employees', 'plus']]],
-];
-const FILTERS: [string, ReactNode, boolean?][] = [
-  ['All open', <Swap key="n" a="47" b="46" />], ['No-shows', '18'], ['Late', '14'], ['Face flagged', <Swap key="n" a="3" b="2" />, true], ['Missed clock-out', '9'], ['Document expiry', '3'],
-];
-const QUEUE = [
-  { ini: 'OF', name: 'Omar F.', ago: '24 min', sub: 'Circle Mall JVC · out 09:41', tag: 'Not sure · 0.551', amber: true },
-  { ini: 'JM', name: 'Jaya M.', ago: '1 h', sub: 'Viva JVT · first clock-in', tag: 'New photo · check ID' },
-];
-const RESOLVED = [
-  { ini: 'RK', name: 'Rahul K.', what: 'Approved by Sara M.', at: '08:41', ok: true },
-  { ini: 'AH', name: 'Ali H.', what: 'Rejected, not them', at: '07:58' },
-  { ini: 'MB', name: 'Musa B.', what: 'Approved by Sara M.', at: '07:12', ok: true },
+const NAV: [string, [string, string, ReactNode?][]][] = [
+  ['Operations', [['Live board', 'grid'], ['Alerts', 'bell', <Swap key="n" a="3" b="2" />], ['Roster', 'cal'], ['People', 'users']]],
+  ['Money', [['Vendor costs', 'chart'], ['Reports', 'trend']]],
 ];
 
 export default function FaceCheck() {
@@ -140,120 +129,73 @@ export default function FaceCheck() {
           <div className={s.lid}>
             <div className={s.lcd} data-lcd>
               <div className={s.ui} aria-hidden="true">
-                <aside className={s.nav}>
-                  <p className={s.brand}>
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="#00CCBC" strokeWidth="2.4" strokeDasharray="4.2 2.4" /><circle cx="12" cy="12" r="4" fill="#0F1A1A" stroke="none" /></svg>
-                    OpsPro
-                  </p>
-                  <div className={s.ws}><i>W</i><span><b>WokeWorks Ops</b>117 locations · UAE</span><Icon n="updown" /></div>
+                <aside className={lb.side}>
+                  <div className={lb.logo}><i className={lb.tile}><Mark /></i><b>OpsPro</b></div>
+                  <div className={lb.search}><Icon n="search" /><span>Search</span><kbd>⌘K</kbd></div>
                   {NAV.map(([group, items]) => (
                     <div key={group}>
-                      <p className={s.group}>{group}</p>
-                      {items.map(([label, ic, count, on]) => (
-                        <p key={label} className={s.item} data-on={on || undefined}><Icon n={ic} />{label}{count && <small>{count}</small>}</p>
+                      <p className={lb.group}>{group}</p>
+                      {items.map(([label, ic, count]) => (
+                        <div key={label} className={lb.item} data-on={label === 'Alerts' || undefined}>
+                          <Icon n={ic} /><span>{label}</span>{count && <em className={lb.badgeRed}>{count}</em>}
+                        </div>
                       ))}
                     </div>
                   ))}
-                  <div className={s.me}><i>SM</i><span><b>Sara Malik</b>Ops manager</span></div>
+                  <div className={lb.sideFoot}>
+                    <div className={lb.org}><i>SM</i><span><b>Sara Malik</b>Ops manager</span><Icon n="updown" /></div>
+                  </div>
                 </aside>
 
                 <div className={s.canvas}>
                   <div className={s.top}>
-                    <b>Alerts</b><span className={s.live}>Live</span><span className={s.date}>Thu 1 Oct · 10:03 GST</span>
-                    <span className={s.search}><Icon n="search" />Search workers<kbd>⌘K</kbd></span>
-                    <span className={s.sup}>All supervisors<Icon n="down" /></span>
-                  </div>
-                  <div className={s.filters}>
-                    {FILTERS.map(([label, count, on]) => <span key={label} className={s.filter} data-on={on || undefined}>{label}<small>{count}</small></span>)}
+                    <div><b>Face check</b><span>Thursday 1 October · 10:03</span></div>
+                    <span className={s.count}><Icon n="face" /><Swap a="3" b="2" /> to review</span>
                   </div>
 
-                  <div className={s.body}>
-                    <div className={s.queue}>
-                      <p className={s.qHead}><b>Face flagged</b><span><Swap a="3" b="2" /> to review</span></p>
-                      <div className={s.fold} data-saeed>
-                        <div><div className={s.qItem} data-on>
-                          {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
-                          <img className={s.ava} src="/people/photo-on-file.webp" alt="" />
-                          <div className={s.qText}>
-                            <b>Saeed S.<small>1 min</small></b>
-                            <span>Carrefour JVC 15 · in 10:02</span>
-                            <span className={s.tag}><em className={`${s.tGrey} ${s.qIdle}`}>Checking</em><em className={`${s.tAmber} ${s.qFlag}`}>Not sure · 0.538</em></span>
-                          </div>
-                        </div></div>
-                      </div>
-                      {QUEUE.map((f) => (
-                        <div key={f.name} className={s.fold}><div><div className={s.qItem}>
-                          <i className={s.ava}>{f.ini}</i>
-                          <div className={s.qText}>
-                            <b>{f.name}<small>{f.ago}</small></b>
-                            <span>{f.sub}</span>
-                            <span className={s.tag}><em className={f.amber ? s.tAmber : s.tGrey}>{f.tag}</em></span>
-                          </div>
-                        </div></div></div>
-                      ))}
-
-                      <div className={s.resolved}>
-                        <p className={s.rHead}><b>Resolved today</b><span><Swap a="5" b="6" /> approved · 1 rejected</span></p>
-                        <div className={s.unfold}><div><p className={s.rRow}>
-                          {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
-                          <img className={s.ava} src="/people/photo-on-file.webp" alt="" />
-                          <span><b>Saeed S.</b><em className={s.ok}>Approved by Sara M.</em></span>10:04
-                        </p></div></div>
-                        {RESOLVED.map((r) => (
-                          <p key={r.name} className={s.rRow}><i className={s.ava}>{r.ini}</i><span><b>{r.name}</b><em className={r.ok ? s.ok : s.no}>{r.what}</em></span>{r.at}</p>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className={s.panel}>
-                      <div className={s.pTop}>
+                  {/* the card being reviewed */}
+                  <div className={s.deck}>
+                    <div className={s.card}>
+                      <div className={s.cardHead}>
                         {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
                         <img src="/people/photo-on-file.webp" alt="" />
-                        <p className={s.pWho}><b>Saeed S.</b>Worker · Carrefour Market JVC 15 · OP-0412</p>
-                        <span className={s.status}>
-                          <em className={s.sIdle}>Checking</em><em className={s.sFlag}><Icon n="face" />Needs a look</em><em className={s.sDone}><Icon n="check" />Resolved</em>
-                        </span>
+                        <p><b>Saeed S.</b>Carrefour JVC 15 · clocked in 10:02</p>
+                        <span className={s.status}><em className={s.sIdle}>Checking</em><em className={s.sFlag}><Icon n="face" />Needs a look</em><em className={s.sDone}><Icon n="check" />Approved</em></span>
                       </div>
-                      <p className={s.why}>
-                        <span className={s.waiting}>Comparing today’s selfie with the photo on file…</span>
-                        <span className={s.close}>Borderline match on clock-in at 10:02 (distance 0.538). Close to the photo on file, but not close enough to pass on its own.</span>
-                      </p>
                       <div className={s.pair}>
-                        <div className={s.shot}>
+                        <figure className={s.shot}>
                           {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
                           <img src="/people/selfie-today.webp" alt="" />
-                          <span>Captured · today 10:02</span>
-                        </div>
-                        <div className={s.shot}>
+                          <figcaption>Today, 10:02</figcaption>
+                        </figure>
+                        <figure className={s.shot}>
                           {/* eslint-disable-next-line @next/next/no-img-element -- stock portrait */}
                           <img src="/people/photo-on-file.webp" alt="" />
-                          <span>Reference · on file</span>
+                          <figcaption>On file</figcaption>
+                        </figure>
+                <div className={s.dial}>
+                          <svg className={s.ring} viewBox="0 0 84 84"><circle className={s.tr} cx="42" cy="42" r="38" /><circle className={s.pr} cx="42" cy="42" r="38" /></svg>
+                          <em className={s.dIdle}>Checking</em>
+                          <em className={s.dFlag}>Not sure<small>54% match</small></em>
+                          <em className={s.dDone}><Icon n="check" /></em>
                         </div>
-                        <div className={s.verdict}><b>Not sure</b><small>0.538</small></div>
-                      </div>
-                      <div className={s.meter}>
-                        <div className={s.track}><i className={s.tSame} /><i className={s.tUnsure} /><i className={s.tDiff} /><b className={s.knob} /></div>
-                        <div className={s.scale}><span>Same person</span><span>Not sure</span><span>Different person</span></div>
-                      </div>
-                      <div className={s.facts}>
-                        <p className={s.fact}><Icon n="pin" /><span>Location<b>Inside geofence</b></span></p>
-                        <p className={s.fact}><Icon n="clock" /><span>Shift<b>10:00 to 19:00</b></span></p>
-                        <p className={s.fact}><Icon n="shield" /><span>Last check<b>Matched</b></span></p>
                       </div>
                       <div className={s.foot}>
-                        <div className={s.actions}>
-                          <span className={s.note}>Add a note for payroll</span>
-                          <span className={s.reject}><Icon n="cross" />Reject, not them</span>
-                          <span className={s.approveWrap}>
-                            <span className={s.approve}><Icon n="check" /><em className={s.lblIdle}>Approve, it’s them</em><em className={s.lblDone}>Approved</em><i className={s.ripple} data-ripple /></span>
-                            {/* a pointer that walks over to Approve and clicks it */}
-                            <svg className={s.cursor} data-cursor viewBox="0 0 28 28"><path d="M5.5 3.2v19.4l5.2-5 3.3 7.6 3.4-1.5-3.3-7.4h7.2Z" /></svg>
-                          </span>
-                        </div>
-                        <div className={s.decided}>
-                          <i>SM</i>
-                          <span><b>Approved by Sara M.</b>10:04 · hours count as normal</span>
-                          <em><Icon n="check" /></em>
+                        <p className={s.why}>
+                          <span className={s.wIdle}>Comparing with the photo on file</span>
+                          <span className={s.wFlag}>Close, but not enough to pass on its own.</span>
+                          <span className={s.wDone}>Same person. Hours count as normal.</span>
+                        </p>
+                        <div className={s.decide}>
+                          <div className={s.actions}>
+                            <span className={s.reject}><Icon n="cross" />Not them</span>
+                            <span className={s.approveWrap}>
+                              <span className={s.approve}><Icon n="check" /><em className={s.lblIdle}>It’s them</em><em className={s.lblDone}>Approved</em><i className={s.ripple} data-ripple /></span>
+                              {/* a pointer that walks over to Approve and clicks it */}
+                              <svg className={s.cursor} data-cursor viewBox="0 0 28 28"><path d="M5.5 3.2v19.4l5.2-5 3.3 7.6 3.4-1.5-3.3-7.4h7.2Z" /></svg>
+                            </span>
+                          </div>
+                          <div className={s.decided}><i>SM</i>Sara M. · 10:04</div>
                         </div>
                       </div>
                     </div>
