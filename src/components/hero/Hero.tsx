@@ -202,18 +202,26 @@ const STAGES: { at: number; step: number; card: Card; status: Status }[] = [
   { at: 0.69, step: 2, status: 'active', card: { kind: 'reliever', state: 'Reliever sent', store: DIVE_STORE_NAME, meta: 'Arriving in 12 min' } },
   { at: 0.8, step: 3, status: 'active', card: { kind: 'hours', state: '62.5 h verified today', store: DIVE_STORE_NAME, meta: 'Ready for billing · 0 disputes' } },
 ];
+// one notification per step, in a single sentence
 const STEPS = [
-  { time: '09:30', title: 'The roster is set', body: 'Ten workers due, 10:00 to 21:00.', stats: ['6 of 10 in'] },
-  { time: '09:58', title: 'Every clock-in is checked', body: 'The face has to match and the phone has to be inside the geofence.', stats: ['Match 0.94', '38 m away'] },
-  { time: '10:01', title: 'A no-show, caught at 10:01', body: 'Cover is on the way before the shift lead notices the gap.', stats: ['Reliever in 12 min'] },
-  { time: '21:00', title: 'The hours are already checked', body: 'Your report and the vendor’s invoice say the same thing.', stats: ['62.5 h verified', '0 disputes'] },
-];
+  { time: '09:30', text: 'Roster set. 10 workers due at 10:00.', icon: 'roster' },
+  { time: '09:58', text: 'Clock-in verified. Face matched, 38 m from the store.', icon: 'face' },
+  { time: '10:01', text: 'No-show on the 10:00 shift. Reliever 12 min away.', icon: 'alert' },
+  { time: '21:00', text: 'Shift closed. 62.5 hours verified, 0 disputes.', icon: 'check' },
+] as const;
+const NOTE_ICON = {
+  roster: <path d="M5 6.5h14v12.5H5zM5 10.5h14M9 4v4M15 4v4" />,
+  face: <path d="M4 8.5V6a2 2 0 0 1 2-2h2.5M15.5 4H18a2 2 0 0 1 2 2v2.5M20 15.5V18a2 2 0 0 1-2 2h-2.5M8.5 20H6a2 2 0 0 1-2-2v-2.5M9.5 10v1M14.5 10v1M9.5 15a3.5 3.5 0 0 0 5 0" />,
+  alert: <path d="M12 7.5v6M12 16.8v.2M12 3.5 2.8 19.5h18.4z" />,
+  check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
+};
+// the stack: the newest notification on top, the two before it tucked behind as plates (like iOS)
+const DEPTH = [{ y: 0, scale: 1, opacity: 1 }, { y: 11, scale: 0.94, opacity: 0.8 }, { y: 21, scale: 0.88, opacity: 0.5 }];
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const copy = useRef<HTMLDivElement>(null);
   const fade = useRef<HTMLDivElement>(null);
-  const story = useRef<HTMLDivElement>(null);
   const eligible = useRef(new Map<string, number>());
   const dive = useRef(0); // 0 = hero at rest → 1 = end of the story (scrubbed by scroll)
   const [stage, setStage] = useState(-1); // index into STAGES, -1 = not diving
@@ -249,11 +257,6 @@ export default function Hero() {
         onUpdate: (st) => {
           dive.current = st.progress;
           const next = STAGES.findLastIndex((x) => st.progress >= x.at);
-          // How far through the current step we are: fills the timeline connector below the active node.
-          const step = next >= 0 ? STAGES[next].step : -1;
-          const from = STAGES.find((x) => x.step === step)?.at ?? 0;
-          const to = STAGES.find((x) => x.step === step + 1)?.at ?? 1;
-          story.current?.style.setProperty('--sp', String(clamp((st.progress - from) / (to - from))));
           // Spotlight in as the dive starts, out over the last stretch so the handoff to the next section stays soft.
           root.current?.style.setProperty('--exit', String(clamp((st.progress - 0.93) / 0.07)));
           root.current?.style.setProperty('--dim', String(clamp((st.progress - 0.04) / 0.1) * (1 - clamp((st.progress - 0.93) / 0.07))));
@@ -282,48 +285,40 @@ export default function Hero() {
       {/* Spotlight for the dive: the edges dim in a colour that follows the story, the store stays bright. */}
       <div className={s.diveTint} data-stage={stage} aria-hidden="true" />
 
-      {/* The story told during the dive: a dark shift log, the one dark object on the map. Each step is a timestamped
-          entry on a rail that fills with scroll; past entries collapse to a line, the current one opens. */}
-      <div ref={story} className={s.story} aria-live="polite">
+      {/* The story told during the dive, as notifications: each step drops in on top and the earlier ones tuck
+          behind it. Scrolling back up sends the top one back out the way it came. */}
+      <div className={s.story} aria-live="polite">
         <AnimatePresence>
           {beat && (
-            <motion.div key="story" className={s.storyCard} data-step={beat.step}
-              initial={{ opacity: 0, y: 56, scale: 0.95, filter: 'blur(8px)' }}
-              animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-              exit={{ opacity: 0, y: -40, scale: 0.95, filter: 'blur(6px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } }}
-              transition={{ type: 'spring', duration: 0.6, bounce: 0.16 }}>
-              <div className={s.storyHead}>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <circle cx="12" cy="12" r="9" fill="none" stroke="var(--teal)" strokeWidth="2.4" strokeDasharray="4.2 2.4" />
-                  <circle cx="12" cy="12" r="4" fill="#F2F6F6" />
-                </svg>
-                <b>Shift log</b>{DIVE_STORE_NAME}
-                <span>{beat.step + 1} of {STEPS.length}</span>
-              </div>
-              <ol className={s.storyLog}>
+            <motion.div key="story" className={s.stack}
+              initial={{ opacity: 0, y: 32, filter: 'blur(8px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -24, filter: 'blur(6px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } }}
+              transition={{ type: 'spring', duration: 0.7, bounce: 0.18 }}>
+              <AnimatePresence initial={false} custom={beat.step}>
                 {STEPS.map((st, i) => {
-                  const state = i < beat.step ? 'done' : i === beat.step ? 'active' : 'todo';
+                  const d = beat.step - i;
+                  if (d < 0 || d >= DEPTH.length) return null;
                   return (
-                    <li key={st.title} className={s.storyRow} data-state={state}>
+                    <motion.div key={st.time} className={s.logNote} data-tone={st.icon} data-depth={d} style={{ zIndex: DEPTH.length - d }}
+                      custom={beat.step}
+                      variants={{
+                        // newer than the current step: back up and out; older than the stack: sinks away behind
+                        exit: (cur: number) => (i > cur
+                          ? { opacity: 0, y: -36, scale: 0.96, filter: 'blur(6px)', transition: { duration: 0.28, ease: [0.4, 0, 1, 1] } }
+                          : { opacity: 0, y: 30, scale: 0.82, transition: { duration: 0.3 } }),
+                      }}
+                      initial={{ opacity: 0, y: -36, scale: 0.96, filter: 'blur(6px)' }}
+                      animate={{ ...DEPTH[d], filter: 'blur(0px)' }}
+                      exit="exit"
+                      transition={{ type: 'spring', duration: 0.6, bounce: 0.22 }}>
+                      <svg className={s.logIcon} viewBox="0 0 24 24" aria-hidden="true">{NOTE_ICON[st.icon]}</svg>
+                      <p>{st.text}</p>
                       <time>{st.time}</time>
-                      <div>
-                        <h3>{st.title}</h3>
-                        <AnimatePresence initial={false}>
-                          {state === 'active' && (
-                            <motion.div key="more" className={s.storyMore}
-                              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
-                              <p className={s.storyBody}>{st.body}</p>
-                              <div className={s.storyStats}>{st.stats.map((x) => <span key={x} className={s.storyStat}>{x}</span>)}</div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                      <svg className={s.storyCheck} viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
-                    </li>
+                    </motion.div>
                   );
                 })}
-              </ol>
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
