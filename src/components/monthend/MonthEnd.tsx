@@ -1,11 +1,10 @@
 'use client';
 
-// Month-end section: what payroll actually gets at the end of the month, a vendor statement built from verified
-// hours, clipped on top of the statements for the other vendors. The month's four exceptions are listed on the
-// statement itself as adjustments, each tagged on the line it touched. Scrolling through drifts the sheets at
-// different speeds (no pinning) so the stack fans out. When the statement is in view, the total counts up and a red
-// Approved stamp lands on it. The markup is the finished state, so reduced motion and no-JS see it complete.
-// All data is invented.
+// Month-end section: the product's days-present report for one vendor, clipped on top of the reports for the other
+// vendors (OpsPro splits reports by vendor, the unit businesses bill in). Per picker: shift type, full, half and
+// absent days, and billable days, with the month's alerts as notes, each resolved in the app. Scrolling drifts the sheets at different speeds (no pinning). When the
+// report is in view, the billable total counts up and a Verified stamp lands. The markup is the finished state, so
+// reduced motion and no-JS see it complete. Names and numbers are example data; vendors are kept neutral.
 import { useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -15,38 +14,39 @@ import s from './monthend.module.css';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
-const RATE: Record<string, number> = { Picker: 28, Driver: 32, Reliever: 30, Packer: 26 }; // AED per hour
+const DAYS = 30; // September
+type Day = 'f' | 'h' | 'a' | 'o' | 'n'; // full, half, absent, day off, not rostered
+// each picker's month: weekly days off from `off`, then the absent and half days on top
+const day = (off: number, absent: number[] = [], half: number[] = []): Day[] =>
+  Array.from({ length: DAYS }, (_, d) => (absent.includes(d) ? 'a' : half.includes(d) ? 'h' : (d + off) % 7 === 6 ? 'o' : 'f'));
 const LINES = [
-  { name: 'Aisha K.', role: 'Picker', shifts: 26, hours: 208 },
-  { name: 'Nimal P.', role: 'Picker', shifts: 26, hours: 207.6, note: 1 },
-  { name: 'Sana R.', role: 'Picker', shifts: 26, hours: 208, note: 2 },
-  { name: 'Rohan T.', role: 'Driver', shifts: 25, hours: 200, note: 3 },
-  { name: 'Musa B.', role: 'Reliever', shifts: 1, hours: 8, note: 3 },
-  { name: 'Faisal A.', role: 'Packer', shifts: 26, hours: 208, note: 4 },
-  { name: 'Bilal S.', role: 'Packer', shifts: 24, hours: 192 },
+  { name: 'Aisha K.', shift: '11+1', days: day(0) },
+  { name: 'Nimal P.', shift: '11+1', days: day(2) },
+  { name: 'Sana R.', shift: '10+1', days: day(1) },
+  { name: 'Rohan T.', shift: '11+1', days: day(4, [20]) },
+  { name: 'Musa B.', role: 'Reliever', shift: '11+1', days: Array.from({ length: DAYS }, (_, d) => (d === 20 ? 'f' : 'n') as Day) },
+  { name: 'Faisal A.', shift: '8+1', days: day(5, [], [11, 18]) },
+  { name: 'Bilal S.', shift: '10+1', days: day(3, [6, 7]) },
 ];
-// the month's exceptions, each settled the day it happened
+// the month's alerts, as the app names them, each resolved
 const NOTES = [
-  { n: 1, day: '9 Sep', what: 'Nimal P. clocked in 22 min late', fix: '0.4 h deducted · Sara M.' },
-  { n: 2, day: '15 Sep', what: 'Sana R. didn’t clock out', fix: 'Closed at 23:00 · Sara M.' },
-  { n: 3, day: '21 Sep', what: 'Rohan T. didn’t show', fix: 'Covered by Musa B.' },
-  { n: 4, day: '26 Sep', what: 'Faisal A.’s selfie didn’t match', fix: 'Checked and approved' },
+  { day: '9 Sep', what: 'Nimal P. arrived 60+ min late', fix: 'Warning issued by Sara M.' },
+  { day: '15 Sep', what: 'Sana R. missed clock-out', fix: 'Auto-closed at finish + 30 min.' },
+  { day: '21 Sep', what: 'Rohan T. no-show', fix: 'Reliever Musa B. deployed.' },
+  { day: '26 Sep', what: 'Faisal A. face flagged', fix: 'Checked and approved.' },
 ];
-const VAT = 0.05;
 
-const amount = (l: (typeof LINES)[number]) => l.hours * RATE[l.role];
-const HOURS = LINES.reduce((a, l) => a + l.hours, 0);
-const SUB = LINES.reduce((a, l) => a + amount(l), 0);
-const TOTAL = SUB * (1 + VAT);
-const money = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const hrs = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const count = (d: Day[], k: Day) => d.filter((x) => x === k).length;
+const billable = (d: Day[]) => count(d, 'f') + count(d, 'h') / 2;
+const SUM = (k: Day) => LINES.reduce((a, l) => a + count(l.days, k), 0);
+const TOTAL = LINES.reduce((a, l) => a + billable(l.days), 0);
+const fmt = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
 const Mark = () => <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#00CCBC" strokeWidth="2.4" strokeDasharray="4.2 2.4" /><circle cx="12" cy="12" r="4" fill="#0F1A1A" /></svg>;
-const Tick = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" /></svg>;
-// the other vendors' statements: a header and a few lines of content, mostly hidden under the top sheet
+// the other vendors' reports: a header and a few lines of content, mostly hidden under the top sheet
 const Back = ({ vendor }: { vendor: string }) => (
   <div className={s.sheet}>
-    <p className={s.backHead}><Mark />Vendor statement<b>{vendor}</b></p>
+    <p className={s.backHead}><Mark />Days present<b>{vendor}</b></p>
     <div className={s.backRows}>{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>
   </div>
 );
@@ -68,10 +68,10 @@ export default function MonthEnd() {
       });
       gsap.from(q('[data-rise]'), { y: 24, autoAlpha: 0, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 75%', once: true } });
 
-      // once the bottom of the statement is in view: the total counts up, then the stamp lands with a thump
+      // once the bottom of the report is in view: the billable total counts up, then the stamp lands with a thump
       const o = { v: 0 };
       gsap.timeline({ scrollTrigger: { trigger: q('[data-doc]')[0], start: 'bottom 92%', once: true } })
-        .fromTo(o, { v: 0 }, { v: TOTAL, duration: 1.4, ease: 'power2.out', onUpdate: () => { total.textContent = money(o.v); } })
+        .fromTo(o, { v: 0 }, { v: TOTAL, duration: 1.4, ease: 'power2.out', onUpdate: () => { total.textContent = fmt(Math.round(o.v * 2) / 2); } })
         .fromTo(q('[data-stamp]'), { scale: 1.9, rotate: -2, autoAlpha: 0 }, { scale: 1, rotate: -8, autoAlpha: 1, duration: 0.42, ease: 'back.out(1.6)' }, 1.3)
         .fromTo(q('[data-doc]'), { y: 0 }, { y: 4, duration: 0.08, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.64);
     });
@@ -106,87 +106,73 @@ export default function MonthEnd() {
         <header className={s.head}>
           <h2 id="monthend-title" className={s.title} data-title>Nobody rebuilds timesheets on the 30th anymore.</h2>
           <p className={s.sub} data-rise>
-            Late starts, no-shows and missed clock-outs get sorted the day they happen. On the 30th, every vendor
-            gets a statement built from hours that were already checked.
+            Late starts, no-shows and missed clock-outs get sorted the day they happen. On the 30th, the days-present
+            report for every vendor is already right.
           </p>
         </header>
 
         <div className={s.stage} data-stage>
-          {/* the statements for the other two vendors, underneath */}
-          <div className={`${s.layer} ${s.back2}`} data-sheet="b2" aria-hidden="true"><Back vendor="Gulf Crew Services" /></div>
-          <div className={`${s.layer} ${s.back1}`} data-sheet="b1" aria-hidden="true"><Back vendor="Swift Manpower" /></div>
+          {/* the reports for the other two vendors, underneath */}
+          <div className={`${s.layer} ${s.back2}`} data-sheet="b2" aria-hidden="true"><Back vendor="Vendor C" /></div>
+          <div className={`${s.layer} ${s.back1}`} data-sheet="b1" aria-hidden="true"><Back vendor="Vendor B" /></div>
 
-          {/* the statement on top, clipped to the stack */}
+          {/* the report on top, clipped to the stack */}
           <div className={`${s.layer} ${s.front}`} data-sheet="front">
             <svg className={s.clip} data-clip viewBox="0 0 40 110" aria-hidden="true">
               <defs><linearGradient id="clipMetal" x1="0" x2="1"><stop offset="0" stopColor="#8E9A9A" /><stop offset="0.45" stopColor="#F4F7F7" /><stop offset="1" stopColor="#7C8888" /></linearGradient></defs>
               <path d="M12 104V22a8 8 0 0 1 16 0v70a5 5 0 0 1-10 0V30" fill="none" stroke="url(#clipMetal)" strokeWidth="3.2" strokeLinecap="round" />
             </svg>
-            <article className={`${s.sheet} ${s.doc}`} data-doc aria-label={`Vendor statement for September 2026: ${hrs(HOURS)} verified hours, AED ${money(TOTAL)} due to Crescent Staffing LLC, approved and sent.`}>
+            <article className={`${s.sheet} ${s.doc}`} data-doc aria-label={`Days present report for Vendor A, September 2026: ${fmt(TOTAL)} billable days across ${LINES.length} pickers, all alerts resolved.`}>
               <header className={s.docHead}>
-                <div>
-                  <p className={s.brand}><Mark />OpsPro</p>
-                  <h3 className={s.docTitle}>Vendor statement</h3>
-                  <p className={s.period}>September 2026 · Circle Mall JVC</p>
-                </div>
-                <dl className={s.meta}>
-                  <div><dt>Statement</dt><dd>VS-2609-014</dd></div>
-                  <div><dt>Period</dt><dd>1–30 Sep 2026</dd></div>
-                  <div><dt>Issued</dt><dd>30 Sep 2026</dd></div>
-                </dl>
+                <p className={s.brand}><Mark />OpsPro</p>
+                <p className={s.issued}>Exported 30 Sep 2026</p>
               </header>
+              <h3 className={s.docTitle}>Days present</h3>
+              <p className={s.period}>Vendor A · 1–30 September 2026 · all shift types</p>
 
-              <div className={s.parties}>
-                <p><span>From</span><b>Crescent Retail</b>Circle Mall JVC, Dubai</p>
-                <p><span>To</span><b>Crescent Staffing LLC</b>Al Quoz Industrial 3, Dubai</p>
-              </div>
+              <dl className={s.summary}>
+                <div><dt>Pickers</dt><dd>{LINES.length}</dd></div>
+                <div><dt>Rostered days</dt><dd>{SUM('f') + SUM('h') + SUM('a')}</dd></div>
+                <div><dt>Absent</dt><dd>{SUM('a')}</dd></div>
+                <div><dt>Alerts</dt><dd>{NOTES.length}<small>all resolved</small></dd></div>
+              </dl>
 
               <table className={s.table}>
                 <thead>
-                  <tr><th>Worker</th><th className={s.hideSm}>Role</th><th>Shifts</th><th>Verified h</th><th className={s.hideSm}>Rate</th><th>Amount</th></tr>
+                  <tr><th>Picker</th><th className={s.hideSm}>Shift</th><th>Full</th><th>Half</th><th>Absent</th><th>Billable</th></tr>
                 </thead>
                 <tbody>
                   {LINES.map((l) => (
                     <tr key={l.name}>
-                      <td>{l.name}{'note' in l && <sup className={s.tag}>{l.note}</sup>}</td>
-                      <td className={s.hideSm}>{l.role}</td>
-                      <td>{l.shifts}</td>
-                      <td>{hrs(l.hours)}</td>
-                      <td className={s.hideSm}>{RATE[l.role].toFixed(2)}</td>
-                      <td>{money(amount(l))}</td>
+                      <td>{l.name}<small>{'role' in l ? l.role : 'Picker'}</small></td>
+                      <td className={s.hideSm}>{l.shift}</td>
+                      <td>{count(l.days, 'f')}</td>
+                      <td>{count(l.days, 'h')}</td>
+                      <td>{count(l.days, 'a')}</td>
+                      <td>{fmt(billable(l.days))}</td>
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr><td>Total</td><td className={s.hideSm} /><td>{SUM('f')}</td><td>{SUM('h')}</td><td>{SUM('a')}</td><td><span data-total>{fmt(TOTAL)}</span></td></tr>
+                </tfoot>
               </table>
 
-              <div className={s.lower}>
-                {/* what was adjusted this month, and who sorted it, the same day */}
-                <section className={s.adj} data-adj>
-                  <p className={s.label}>Adjustments, all settled the same day</p>
-                  <ol>
-                    {NOTES.map((x) => (
-                      <li key={x.n}>
-                        <sup className={s.tag}>{x.n}</sup>
-                        <time>{x.day}</time>
-                        <span><b>{x.what}</b>{x.fix}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
+              {/* the month's alerts, each sorted the day it happened */}
+              <section className={s.notes} data-adj>
+                <p className={s.label}>Notes</p>
+                <ol>
+                  {NOTES.map((x) => <li key={x.day}><time>{x.day}</time><span>{x.what}. {x.fix}</span></li>)}
+                </ol>
+              </section>
 
-                <dl className={s.sums}>
-                  <div><dt>Verified hours</dt><dd>{hrs(HOURS)}</dd></div>
-                  <div><dt>Subtotal</dt><dd>{money(SUB)}</dd></div>
-                  <div><dt>VAT 5%</dt><dd>{money(SUB * VAT)}</dd></div>
-                  <div className={s.due}><dt>Total due</dt><dd>AED <span data-total>{money(TOTAL)}</span></dd></div>
-                </dl>
-              </div>
-
-              <p className={s.proof}><Tick />Every hour on this statement matched a clock-in, a selfie and a rostered shift in OpsPro.</p>
-
+              <footer className={s.foot}>
+                <span>Built from geofenced, face-checked clock-ins against the roster</span>
+                <span>Page 1 of 1</span>
+              </footer>
               <div className={s.stamp} data-stamp aria-hidden="true">
-                <b>Approved</b>
-                <span>30 Sep 2026 · sent to vendor</span>
+                <b>Verified</b>
+                <span>All alerts resolved</span>
               </div>
             </article>
           </div>
