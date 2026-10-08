@@ -1,9 +1,11 @@
 'use client';
 
-// Month-end section: September's timesheet for one store, settling itself as the month runs. A month track
-// fills day by day; each problem gets a labelled flag on the day it happened and a line in the log saying what
-// happened and who sorted it, the same day. The verified total counts up, and at the end the report goes to
-// finance. Plays once when it scrolls into view; no scroll lock. All data is invented.
+// Month-end section: what payroll actually gets at the end of the month, a vendor statement built from verified
+// hours, clipped on top of the statements for the other vendors. The month's four exceptions are listed on the
+// statement itself as adjustments, each tagged on the line it touched. Scrolling through drifts the sheets at
+// different speeds (no pinning) so the stack fans out. When the statement is in view, the total counts up and a red
+// Approved stamp lands on it. The markup is the finished state, so reduced motion and no-JS see it complete.
+// All data is invented.
 import { useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -13,73 +15,89 @@ import s from './monthend.module.css';
 
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
-const DAYS = 30; // September
-const SHIFT = 8; // rostered hours per shift
-
-type Issue = { day: number; ver: number; problem: string; fix: string; icon: string };
-const WORKERS: { name: string; initials: string; off: number; issue?: Issue }[] = [
-  { name: 'Aisha K.', initials: 'AK', off: 0 },
-  { name: 'Nimal P.', initials: 'NP', off: 2, issue: { day: 8, ver: 7.6, problem: 'Late 22 min', fix: 'Deducted by Sara M.', icon: 'M12 7.5V12l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' } },
-  { name: 'Rohan T.', initials: 'RT', off: 4, issue: { day: 20, ver: 0, problem: 'No-show', fix: 'Musa B. covered the shift', icon: 'M15 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9 10.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 8l4 4M21 8l-4 4' } },
-  { name: 'Sana R.', initials: 'SR', off: 1, issue: { day: 14, ver: 8, problem: 'No clock-out', fix: 'Closed at 23:00 by Sara M.', icon: 'M15 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H4' } },
-  { name: 'Faisal A.', initials: 'FA', off: 5, issue: { day: 25, ver: 8, problem: 'Selfie didn’t match', fix: 'Checked and approved', icon: 'M3 7.5V5.5A2.5 2.5 0 0 1 5.5 3h2M16.5 3h2A2.5 2.5 0 0 1 21 5.5v2M21 16.5v2a2.5 2.5 0 0 1-2.5 2.5h-2M7.5 21h-2A2.5 2.5 0 0 1 3 18.5v-2M9 9.5v.01M15 9.5v.01M9 15.5h6' } },
-  { name: 'Bilal S.', initials: 'BS', off: 3 },
+const RATE: Record<string, number> = { Picker: 28, Driver: 32, Reliever: 30, Packer: 26 }; // AED per hour
+const LINES = [
+  { name: 'Aisha K.', role: 'Picker', shifts: 26, hours: 208 },
+  { name: 'Nimal P.', role: 'Picker', shifts: 26, hours: 207.6, note: 1 },
+  { name: 'Sana R.', role: 'Picker', shifts: 26, hours: 208, note: 2 },
+  { name: 'Rohan T.', role: 'Driver', shifts: 25, hours: 200, note: 3 },
+  { name: 'Musa B.', role: 'Reliever', shifts: 1, hours: 8, note: 3 },
+  { name: 'Faisal A.', role: 'Packer', shifts: 26, hours: 208, note: 4 },
+  { name: 'Bilal S.', role: 'Packer', shifts: 24, hours: 192 },
 ];
+// the month's exceptions, each settled the day it happened
+const NOTES = [
+  { n: 1, day: '9 Sep', what: 'Nimal P. clocked in 22 min late', fix: '0.4 h deducted · Sara M.' },
+  { n: 2, day: '15 Sep', what: 'Sana R. didn’t clock out', fix: 'Closed at 23:00 · Sara M.' },
+  { n: 3, day: '21 Sep', what: 'Rohan T. didn’t show', fix: 'Covered by Musa B.' },
+  { n: 4, day: '26 Sep', what: 'Faisal A.’s selfie didn’t match', fix: 'Checked and approved' },
+];
+const VAT = 0.05;
 
-// verified hours per picker, cumulative by day (one day off a week, the issue day at its verified hours)
-const ROWS = WORKERS.map((p) => {
-  const days = Array.from({ length: DAYS }, (_, d) => (p.issue?.day === d ? p.issue.ver : (d + p.off) % 7 === 6 ? null : SHIFT));
-  const cum = [0];
-  days.forEach((h) => cum.push(cum.at(-1)! + (h ?? 0)));
-  return { ...p, cum, rostered: days.filter((h) => h !== null).length * SHIFT };
-});
-const ROSTERED = ROWS.reduce((a, r) => a + r.rostered, 0);
-const ISSUES = WORKERS.filter((p) => p.issue).map((p) => ({ ...p.issue!, name: p.name, initials: p.initials })).sort((a, b) => a.day - b.day);
+const amount = (l: (typeof LINES)[number]) => l.hours * RATE[l.role];
+const HOURS = LINES.reduce((a, l) => a + l.hours, 0);
+const SUB = LINES.reduce((a, l) => a + amount(l), 0);
+const TOTAL = SUB * (1 + VAT);
+const money = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const hrs = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
+const Mark = () => <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="#00CCBC" strokeWidth="2.4" strokeDasharray="4.2 2.4" /><circle cx="12" cy="12" r="4" fill="#0F1A1A" /></svg>;
 const Tick = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" /></svg>;
-const hours = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const at = (day: number) => `${((day + 0.5) / DAYS) * 100}%`;
+// the other vendors' statements: a header and a few lines of content, mostly hidden under the top sheet
+const Back = ({ vendor }: { vendor: string }) => (
+  <div className={s.sheet}>
+    <p className={s.backHead}><Mark />Vendor statement<b>{vendor}</b></p>
+    <div className={s.backRows}>{Array.from({ length: 9 }, (_, i) => <i key={i} />)}</div>
+  </div>
+);
 
 export default function MonthEnd() {
   const root = useRef<HTMLElement>(null);
 
   useGSAP(() => {
     const el = root.current!;
+    const q = gsap.utils.selector(el);
     const stage = el.querySelector<HTMLElement>('[data-stage]')!;
-    const chip = el.querySelector<HTMLElement>('[data-chip]')!;
     const total = el.querySelector<HTMLElement>('[data-total]')!;
-    const flags = el.querySelectorAll<HTMLElement>('[data-flag]');
-    const entries = el.querySelectorAll<HTMLElement>('[data-entry]');
-
-    // day: how many days are checked (0..30). A problem shows up the day after it happened and is settled a day later.
-    const render = (day: number) => {
-      stage.style.setProperty('--p', String(day / DAYS));
-      chip.textContent = day >= DAYS ? 'Ready to send' : `Checking ${day + 1} Sep`;
-      total.textContent = hours(ROWS.reduce((a, r) => a + r.cum[day], 0));
-      stage.dataset.done = String(day >= DAYS);
-      ISSUES.forEach((x, i) => {
-        const state = day > x.day + 1 ? 'settled' : day > x.day ? 'found' : '';
-        flags[i].dataset.state = state;
-        entries[i].dataset.state = state;
-      });
-    };
 
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      render(0);
-      stage.dataset.sent = 'false';
       SplitText.create(el.querySelector('[data-title]'), {
         type: 'lines', mask: 'lines', autoSplit: true,
         onSplit: (self) => gsap.from(self.lines, { yPercent: 100, duration: 1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 75%', once: true } }),
       });
-      gsap.from(el.querySelectorAll('[data-rise]'), { y: 24, autoAlpha: 0, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 75%', once: true } });
-      const o = { d: 0 };
-      gsap.timeline({ scrollTrigger: { trigger: stage, start: 'top 75%', once: true } })
-        .from(el.querySelector('[data-card]'), { y: 60, autoAlpha: 0, duration: 0.9, ease: 'expo.out' })
-        .to(o, { d: DAYS, duration: 4.2, ease: 'none', onUpdate: () => render(Math.floor(o.d)) }, 0.4)
-        .call(() => { stage.dataset.sent = 'true'; }, [], '+=0.7');
+      gsap.from(q('[data-rise]'), { y: 24, autoAlpha: 0, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 75%', once: true } });
+
+      // once the bottom of the statement is in view: the total counts up, then the stamp lands with a thump
+      const o = { v: 0 };
+      gsap.timeline({ scrollTrigger: { trigger: q('[data-doc]')[0], start: 'bottom 92%', once: true } })
+        .fromTo(o, { v: 0 }, { v: TOTAL, duration: 1.4, ease: 'power2.out', onUpdate: () => { total.textContent = money(o.v); } })
+        .fromTo(q('[data-stamp]'), { scale: 1.9, rotate: -2, autoAlpha: 0 }, { scale: 1, rotate: -8, autoAlpha: 1, duration: 0.42, ease: 'back.out(1.6)' }, 1.3)
+        .fromTo(q('[data-doc]'), { y: 0 }, { y: 4, duration: 0.08, yoyo: true, repeat: 1, ease: 'power1.inOut' }, 1.64);
     });
-    mm.add('(prefers-reduced-motion: reduce)', () => { render(DAYS); stage.dataset.sent = 'true'; });
+
+    // the stack, tied to the scroll (no pinning). Entrance while the stage climbs to the upper third of the screen,
+    // a hold, then the sheets fan apart on the way out. One timeline, so entrance and exit never fight.
+    mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
+      const [b2, b1, front] = ['[data-sheet="b2"]', '[data-sheet="b1"]', '[data-sheet="front"]'].map((x) => q(x)[0]);
+      gsap.timeline({ defaults: { ease: 'none' }, scrollTrigger: { trigger: stage, start: 'top bottom', end: 'bottom top', scrub: 1 } })
+        // in: the statement rises tipped back and settles; the other two sweep in from the sides, spinning
+        .fromTo(front, { y: 420, rotationX: 52, rotation: -7, scale: 0.8, autoAlpha: 0.85 }, { y: 0, rotationX: 0, rotation: -1, scale: 1, autoAlpha: 1, duration: 3.6, ease: 'power3.out' }, 0)
+        .fromTo(b1, { x: 640, y: 380, rotation: 34, rotationX: 30, autoAlpha: 0 }, { x: 44, y: -38, rotation: 4, rotationX: 0, autoAlpha: 1, duration: 3.6, ease: 'power3.out' }, 0.3)
+        .fromTo(b2, { x: -680, y: 460, rotation: -38, rotationX: 30, autoAlpha: 0 }, { x: -50, y: -62, rotation: -6, rotationX: 0, autoAlpha: 1, duration: 3.6, ease: 'power3.out' }, 0.5)
+        .fromTo(q('[data-clip]'), { y: -140, rotation: -40, autoAlpha: 0 }, { y: 0, rotation: -4, autoAlpha: 1, duration: 1.2, ease: 'back.out(2)' }, 2.6)
+        .fromTo(q('[data-doc] tbody tr, [data-doc] [data-adj] li'), { x: -28, autoAlpha: 0 }, { x: 0, autoAlpha: 1, duration: 0.5, stagger: 0.18, ease: 'power2.out' }, 1.6)
+        // out: the stack fans apart at different speeds
+        .to(b2, { x: -150, y: -260, rotation: -14, duration: 3 }, 7)
+        .to(b1, { x: 170, y: -340, rotation: 13, duration: 3 }, 7)
+        .to(front, { y: -90, rotation: 1.5, duration: 3 }, 7);
+    });
+
+    // phones: the statement alone, rising and settling with the scroll
+    mm.add('(max-width: 899px) and (prefers-reduced-motion: no-preference)', () => {
+      gsap.fromTo(q('[data-sheet="front"]'), { y: 160, rotationX: 28, scale: 0.92, autoAlpha: 0.3 },
+        { y: 0, rotationX: 0, scale: 1, autoAlpha: 1, ease: 'power3.out', scrollTrigger: { trigger: stage, start: 'top bottom', end: 'top 30%', scrub: 1 } });
+    });
   }, { scope: root });
 
   return (
@@ -88,55 +106,89 @@ export default function MonthEnd() {
         <header className={s.head}>
           <h2 id="monthend-title" className={s.title} data-title>Nobody rebuilds timesheets on the 30th anymore.</h2>
           <p className={s.sub} data-rise>
-            The supervisor who was there sorts out late starts, no-shows and missed clock-outs the same day.
-            By the 30th, the hours are approved and ready for payroll and vendor invoices.
+            Late starts, no-shows and missed clock-outs get sorted the day they happen. On the 30th, every vendor
+            gets a statement built from hours that were already checked.
           </p>
         </header>
 
-        <div className={s.stage} data-stage data-done="true" data-sent="true" aria-hidden="true">
-          <div className={s.card} data-card>
-            <div className={s.top}>
-              <div>
-                <p className={s.docTitle}>September timesheet</p>
-                <p className={s.meta}>Circle Mall JVC · {WORKERS.length} workers</p>
+        <div className={s.stage} data-stage>
+          {/* the statements for the other two vendors, underneath */}
+          <div className={`${s.layer} ${s.back2}`} data-sheet="b2" aria-hidden="true"><Back vendor="Gulf Crew Services" /></div>
+          <div className={`${s.layer} ${s.back1}`} data-sheet="b1" aria-hidden="true"><Back vendor="Swift Manpower" /></div>
+
+          {/* the statement on top, clipped to the stack */}
+          <div className={`${s.layer} ${s.front}`} data-sheet="front">
+            <svg className={s.clip} data-clip viewBox="0 0 40 110" aria-hidden="true">
+              <defs><linearGradient id="clipMetal" x1="0" x2="1"><stop offset="0" stopColor="#8E9A9A" /><stop offset="0.45" stopColor="#F4F7F7" /><stop offset="1" stopColor="#7C8888" /></linearGradient></defs>
+              <path d="M12 104V22a8 8 0 0 1 16 0v70a5 5 0 0 1-10 0V30" fill="none" stroke="url(#clipMetal)" strokeWidth="3.2" strokeLinecap="round" />
+            </svg>
+            <article className={`${s.sheet} ${s.doc}`} data-doc aria-label={`Vendor statement for September 2026: ${hrs(HOURS)} verified hours, AED ${money(TOTAL)} due to Crescent Staffing LLC, approved and sent.`}>
+              <header className={s.docHead}>
+                <div>
+                  <p className={s.brand}><Mark />OpsPro</p>
+                  <h3 className={s.docTitle}>Vendor statement</h3>
+                  <p className={s.period}>September 2026 · Circle Mall JVC</p>
+                </div>
+                <dl className={s.meta}>
+                  <div><dt>Statement</dt><dd>VS-2609-014</dd></div>
+                  <div><dt>Period</dt><dd>1–30 Sep 2026</dd></div>
+                  <div><dt>Issued</dt><dd>30 Sep 2026</dd></div>
+                </dl>
+              </header>
+
+              <div className={s.parties}>
+                <p><span>From</span><b>Crescent Retail</b>Circle Mall JVC, Dubai</p>
+                <p><span>To</span><b>Crescent Staffing LLC</b>Al Quoz Industrial 3, Dubai</p>
               </div>
-              <span className={s.chip}><Tick /><span data-chip>Ready to send</span></span>
-            </div>
 
-            {/* the month: fills day by day, a labelled flag on each day something went wrong */}
-            <div className={s.month}>
-              {ISSUES.map((x) => (
-                <span key={x.day} className={s.flag} data-flag data-state="settled" style={{ left: at(x.day) }}>
-                  <b><Tick />{x.day + 1} Sep</b>
-                </span>
-              ))}
-              <div className={s.track}><i className={s.fill} /></div>
-              <div className={s.axis}>{[[0, '1 Sep'], [7, '8'], [14, '15'], [21, '22'], [29, '30 Sep']].map(([d, l]) => <span key={l} style={{ left: at(d as number) }}>{l}</span>)}</div>
-            </div>
+              <table className={s.table}>
+                <thead>
+                  <tr><th>Worker</th><th className={s.hideSm}>Role</th><th>Shifts</th><th>Verified h</th><th className={s.hideSm}>Rate</th><th>Amount</th></tr>
+                </thead>
+                <tbody>
+                  {LINES.map((l) => (
+                    <tr key={l.name}>
+                      <td>{l.name}{'note' in l && <sup className={s.tag}>{l.note}</sup>}</td>
+                      <td className={s.hideSm}>{l.role}</td>
+                      <td>{l.shifts}</td>
+                      <td>{hrs(l.hours)}</td>
+                      <td className={s.hideSm}>{RATE[l.role].toFixed(2)}</td>
+                      <td>{money(amount(l))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-            {/* what happened, and who sorted it, the same day */}
-            <ol className={s.log}>
-              {ISSUES.map((x) => (
-                <li key={x.day} className={s.entry} data-entry data-state="settled">
-                  <time>{x.day + 1} Sep</time>
-                  <span className={s.who}><i>{x.initials}</i>{x.name}</span>
-                  <span className={s.problem}><svg viewBox="0 0 24 24" aria-hidden="true"><path d={x.icon} /></svg>{x.problem}</span>
-                  <span className={s.fix}><Tick />{x.fix}<small>Same day</small></span>
-                </li>
-              ))}
-            </ol>
+              <div className={s.lower}>
+                {/* what was adjusted this month, and who sorted it, the same day */}
+                <section className={s.adj} data-adj>
+                  <p className={s.label}>Adjustments, all settled the same day</p>
+                  <ol>
+                    {NOTES.map((x) => (
+                      <li key={x.n}>
+                        <sup className={s.tag}>{x.n}</sup>
+                        <time>{x.day}</time>
+                        <span><b>{x.what}</b>{x.fix}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
 
-            <div className={s.foot}>
-              <p className={s.total}>
-                <span>Verified hours</span>
-                <b><span data-total>{hours(ROWS.reduce((a, r) => a + r.cum[DAYS], 0))}</span> h</b>
-                <small>of {hours(ROSTERED)} h rostered</small>
-              </p>
-              <span className={s.send}>
-                <em className={s.sendIdle}>Close September</em>
-                <em className={s.sendDone}><Tick />Closed · statements sent to 3 vendors</em>
-              </span>
-            </div>
+                <dl className={s.sums}>
+                  <div><dt>Verified hours</dt><dd>{hrs(HOURS)}</dd></div>
+                  <div><dt>Subtotal</dt><dd>{money(SUB)}</dd></div>
+                  <div><dt>VAT 5%</dt><dd>{money(SUB * VAT)}</dd></div>
+                  <div className={s.due}><dt>Total due</dt><dd>AED <span data-total>{money(TOTAL)}</span></dd></div>
+                </dl>
+              </div>
+
+              <p className={s.proof}><Tick />Every hour on this statement matched a clock-in, a selfie and a rostered shift in OpsPro.</p>
+
+              <div className={s.stamp} data-stamp aria-hidden="true">
+                <b>Approved</b>
+                <span>30 Sep 2026 · sent to vendor</span>
+              </div>
+            </article>
           </div>
         </div>
       </div>
