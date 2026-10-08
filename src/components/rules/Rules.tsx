@@ -14,12 +14,12 @@ gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
 const hm = (h: number) => { const m = Math.round(h * 60); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
 const hmin = (min: number) => { const m = Math.round(min); return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`; };
-const num = (n: number) => Math.round(n).toLocaleString('en-US');
 
-const OT = 135, LATE = 64, VISA_FROM = 45, VISA = 12, DAYS = 1284; // minutes over, minutes late, days left, billable days
+const OT = 135, LATE = 64, VISA_FROM = 45, VISA = 12, SHIFT = 540, BREAK = 30; // minutes over, minutes late, days left, shift and break minutes
 
 const Check = () => <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.6L12 5.4" /></svg>;
-const Who = ({ i, n }: { i: string; n: string }) => <span className={s.who}><i>{i}</i>{n}</span>;
+// a person's name with their photo (stock portraits of models)
+const Who = ({ n }: { i?: string; n: string }) => <span className={s.who}><i style={{ backgroundImage: `url(/people/${n.split(' ')[0].toLowerCase()}.webp)` }} />{n}</span>;
 const Pill = ({ v, w, children, ...rest }: { v: string; w: string; children?: ReactNode; [k: `data-${string}`]: string | boolean }) =>
   <span className={s.pill} style={{ minWidth: w }} {...rest}><span data-v>{v}</span>{children}</span>;
 
@@ -29,7 +29,7 @@ export default function Rules() {
   useGSAP(() => {
     const el = root.current!;
     const by = (k: string) => el.querySelector<HTMLElement>(`[data-rule="${k}"]`)!;
-    const [ot, miss, late, docs, proj] = ['ot', 'miss', 'late', 'docs', 'proj'].map(by);
+    const [ot, miss, late, docs, brk] = ['ot', 'miss', 'late', 'docs', 'brk'].map(by);
     const set = (row: HTMLElement, v: string) => { row.querySelector('[data-v]')!.textContent = v; };
     const step = (row: HTMLElement, n: number) => { row.dataset.step = String(n); };
 
@@ -37,7 +37,7 @@ export default function Rules() {
     const missAt = (h: number) => { set(miss, hm(h)); miss.toggleAttribute('data-over', h >= 21); };
     const lateAt = (m: number) => { set(late, `${Math.round(m)} min`); late.toggleAttribute('data-over', m >= 60); };
     const docsAt = (d: number) => set(docs, `${Math.round(d)} days`);
-    const projAt = (n: number) => set(proj, num(n));
+    const brkAt = (m: number) => set(brk, hmin(m));
 
     // Plays when the line comes into view; resets only once it's fully below the screen again, so nothing vanishes while visible.
     const replay = (row: HTMLElement, tl: gsap.core.Timeline, rewind: () => void) => {
@@ -53,7 +53,7 @@ export default function Rules() {
         onSplit: (self) => gsap.from(self.lines, { yPercent: 100, duration: 1, ease: 'expo.out', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 75%', once: true } }),
       });
 
-      const o = { ot: 0, miss: 18, late: 0, docs: VISA_FROM, proj: 0 };
+      const o = { ot: 0, miss: 18, late: 0, docs: VISA_FROM, brk: 0 };
       const line = (row: HTMLElement) => gsap.timeline({ paused: true })
         .from(row.children, { y: 28, autoAlpha: 0, duration: 0.9, stagger: 0.08, ease: 'expo.out' });
 
@@ -79,11 +79,11 @@ export default function Rules() {
         .call(() => step(docs, 1), [], 2.4),
       () => { docsAt(VISA_FROM); step(docs, 0); });
 
-      // a shift gets cancelled after the count: the total drops by one
-      replay(proj, line(proj)
-        .to(o, { proj: DAYS, duration: 1.6, ease: 'power2.out', onUpdate: () => projAt(o.proj) }, 0.5)
-        .call(() => { step(proj, 1); projAt(DAYS - 1); }, [], 2.6),
-      () => { projAt(0); step(proj, 0); });
+      // the shift counts up to 9 hours, then the unpaid break comes off
+      replay(brk, line(brk)
+        .to(o, { brk: SHIFT, duration: 1.6, ease: 'power2.out', onUpdate: () => brkAt(o.brk) }, 0.5)
+        .call(() => { step(brk, 1); brkAt(SHIFT - BREAK); }, [], 2.6),
+      () => { brkAt(0); step(brk, 0); });
     });
     // reduced motion: the markup already shows the finished state
   }, { scope: root });
@@ -127,11 +127,11 @@ export default function Rules() {
             </p>
           </li>
 
-          <li className={s.rule} data-rule="proj" data-step="1">
-            <p className={s.meta}><b>Billable days</b>Projected from the roster, one per scheduled worker-day.</p>
+          <li className={s.rule} data-rule="brk" data-step="1">
+            <p className={s.meta}><b>Breaks</b>Set per site. Here, 30 minutes unpaid on any shift over 6 hours.</p>
             <p className={s.line}>
-              November comes to <Pill v={num(DAYS - 1)} w="3.8ch"><i className={s.badge}>−1</i></Pill> billable days.{' '}
-              <span className={s.soft}>Cancel a shift and it drops out of the count.</span>
+              <Who i="NP" n="Nimal P." /> works a 9-hour shift and gets paid for <Pill v={hmin(SHIFT - BREAK)} w="5.6ch"><i className={s.badge}>−30m</i></Pill>.{' '}
+              <span className={s.soft}>Nobody has to work the break out by hand.</span>
             </p>
           </li>
         </ol>
