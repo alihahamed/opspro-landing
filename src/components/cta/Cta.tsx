@@ -5,7 +5,7 @@
 // scooter routes and stores) with teal pulses running along the roads. Scrolling through moves each depth at its
 // own speed (parallax, scrubbed, never pinned).
 // All names and numbers are invented.
-import { useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
@@ -48,6 +48,15 @@ const Check = () => <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5
 export default function Cta() {
   const root = useRef<HTMLElement>(null);
 
+  // the looping animations (road pulses, chip bob) only run while the section is on screen
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => el.toggleAttribute('data-live', e.isIntersecting), { rootMargin: '100px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   useGSAP(() => {
     const mm = gsap.matchMedia();
     mm.add('(prefers-reduced-motion: no-preference)', () => {
@@ -70,7 +79,7 @@ export default function Cta() {
         const d = Number((c as HTMLElement).dataset.chip);
         gsap.fromTo(c, { y: amp * d }, { y: -amp * d, ease: 'none', scrollTrigger: through });
       });
-      gsap.fromTo(q('[data-map]'), { y: 70, scale: 1.12 }, { y: -70, scale: 1, ease: 'none', scrollTrigger: through });
+      gsap.fromTo(q('[data-map]'), { y: 70 }, { y: -70, ease: 'none', scrollTrigger: through }); // translate only: scaling re-rasterises the map
     });
   }, { scope: root });
 
@@ -80,8 +89,8 @@ export default function Cta() {
         <div className={s.map} data-map>
           <svg viewBox={`0 0 1000 ${MAP_H.toFixed(0)}`} preserveAspectRatio="xMidYMid slice">
             {ROADS.map((d, i) => <path key={i} className={s.road} d={d} />)}
-            {/* a scooter-length pulse running along each road, each on its own clock */}
-            {ROADS.map((d, i) => <path key={`p${i}`} className={s.pulse} d={d} pathLength={1} style={{ animationDuration: `${7 + (i % 5) * 1.7}s`, animationDelay: `${-i * 1.3}s` }} />)}
+            {/* a scooter-length pulse on every third road, each on its own clock (one per road repainted the whole map) */}
+            {ROADS.map((d, i) => i % 3 === 0 && <path key={`p${i}`} className={s.pulse} d={d} pathLength={1} style={{ animationDuration: `${7 + (i % 5) * 1.7}s`, animationDelay: `${-i * 1.3}s` }} />)}
             {PINS.map(([x, y], i) => <circle key={i} className={s.pin} cx={x} cy={y} r="9" />)}
           </svg>
         </div>
