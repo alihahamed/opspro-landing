@@ -1,108 +1,211 @@
-/* Product section: big two-line title, then the mockup inside a 5px frame with callout cards around it. */
+/* Product section: the live board laid over the screen of the MacBook photo, inside a thin frame. */
 
 .section { max-width: 1248px; margin: 0 auto; padding: 96px 24px 128px; }
-
 .title {
   max-width: 1100px; /* wide enough that the title sits on exactly two lines at desktop sizes */
-  margin: 0 auto;
-  text-align: center;
-  font-size: clamp(40px, 5.2vw, 76px);
-  font-weight: 500;
-  line-height: 1.04;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
+  margin: 0 auto; text-align: center;
+  font-size: clamp(40px, 5.2vw, 76px); font-weight: 500; line-height: 1.04; letter-spacing: -0.04em; text-wrap: balance;
+}
+/* the frame: 5px of surface around the photo; corners stay concentric (32 = 27 + 5) */
+.frame { position: relative; margin-top: 64px; padding: 5px; border-radius: 32px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-2); overflow: hidden; }
+.photo { position: relative; border-radius: 27px; overflow: hidden; }
+.shot { display: block; width: 100%; aspect-ratio: 3 / 2; } /* the photo is exactly 1536×1024 */
+/* the laptop's screen in the photo: x 255–1283, y 160–774 of 1536×1024 */
+.screen { position: absolute; left: 16.6%; top: 15.625%; width: 66.93%; height: 59.96%; overflow: hidden; border-radius: 3px; background: #EFF3F3; }
+
+/* ---------- the dashboard, laid out at 1280×765 and scaled by --s ---------- */
+.ui {
+  position: absolute; left: 0; top: 0; width: 1280px; height: 765px;
+  transform: scale(var(--s, 0.82)); transform-origin: 0 0;
+  color: var(--ink); font-size: 14px; line-height: 1.35; font-variant-numeric: tabular-nums;
+}
+.ui p, .ui h3 { margin: 0; }
+.ui svg { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ui em, .ui i { font-style: normal; }
+.board { display: grid; grid-template-columns: 212px minmax(0, 1fr); height: 100%; }
+
+/* a value that changes when cover is sent: the old one, then the new one, in the same spot */
+.was, .now { grid-area: 1 / 1; transition: opacity 0.3s, transform 0.4s var(--ease-out); }
+.board[data-covered] .was, .board:not([data-covered]) .now { opacity: 0; pointer-events: none; }
+.board:not([data-covered]) .now { transform: translateY(4px); }
+.swap { display: grid; }
+.swap > span { display: flex; align-items: center; gap: 10px; }
+
+/* ---------- sidebar: layered dark, raised active item, inset search ---------- */
+.side {
+  position: relative; display: flex; flex-direction: column; gap: 2px; padding: 20px 14px 16px; overflow: hidden;
+  background: linear-gradient(180deg, #172626, #0F1A1A 55%, #0A1212); box-shadow: inset -1px 0 0 rgb(255 255 255 / 0.07);
+  color: #C9D6D5;
+}
+.side::before { content: ''; position: absolute; left: -110px; top: -120px; width: 280px; height: 220px; border-radius: 50%; background: rgb(0 204 188 / 0.16); filter: blur(60px); pointer-events: none; }
+.side > * { position: relative; }
+.logo { display: flex; align-items: center; gap: 10px; padding: 0 6px 18px; }
+.logo b { flex: 1; font-size: 17px; font-weight: 500; letter-spacing: -0.02em; color: #fff; }
+.logo > svg { width: 17px; height: 17px; color: #7F9493; }
+.tile {
+  width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px;
+  background: linear-gradient(180deg, #263737, #111C1C); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.1), 0 3px 8px rgb(0 0 0 / 0.4);
+}
+.tile svg { width: 20px; height: 20px; }
+.search {
+  display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 8px 0 10px; border-radius: 10px;
+  background: rgb(0 0 0 / 0.3); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07), inset 0 1px 3px rgb(0 0 0 / 0.45), 0 1px 0 rgb(255 255 255 / 0.05);
+  font-size: 13px; color: #8FA3A2;
+}
+.search svg { width: 16px; height: 16px; }
+.search span { flex: 1; }
+.search kbd { padding: 2px 6px; border-radius: 6px; font-family: inherit; font-size: 11px; font-weight: 500; line-height: 16px; color: #A9B9B8; background: rgb(255 255 255 / 0.08); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.group { padding: 16px 10px 6px; font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #7F9493; }
+.item { position: relative; display: flex; align-items: center; gap: 11px; height: 40px; padding: 0 8px 0 10px; border-radius: 10px; font-size: 14px; }
+.item svg { color: #9FB2B1; }
+.item span { flex: 1; }
+.item[data-on] {
+  font-weight: 500; color: #fff;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.05));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.09), inset 0 1px 0 rgb(255 255 255 / 0.1), 0 3px 10px rgb(0 0 0 / 0.35);
+}
+.item[data-on] svg { color: var(--teal); }
+.item[data-on]::before { content: ''; position: absolute; left: -14px; top: 11px; width: 3px; height: 18px; border-radius: 2px; background: var(--teal); box-shadow: 0 0 8px rgb(0 204 188 / 0.7); }
+.badge, .badgeRed { display: grid; min-width: 20px; height: 20px; padding: 0 7px; border-radius: 99px; place-items: center; font-size: 11.5px; font-weight: 500; background: rgb(255 255 255 / 0.1); }
+.badgeRed { color: #fff; background: var(--red-ink); box-shadow: 0 2px 6px rgb(220 38 38 / 0.45); }
+.sideFoot { margin-top: auto; display: flex; flex-direction: column; gap: 2px; }
+.org {
+  display: flex; align-items: center; gap: 10px; margin-top: 2px; padding: 10px; border-radius: 14px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.03));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.08), 0 6px 16px rgb(0 0 0 / 0.4);
+}
+.org i { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; font-size: 12px; font-weight: 500; color: var(--ink); background: linear-gradient(180deg, #3AE6D8, #00A99C); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 2px 6px rgb(0 0 0 / 0.35); }
+.org span { flex: 1; display: flex; flex-direction: column; font-size: 12px; color: #9FB2B1; }
+.org b { font-size: 13.5px; font-weight: 500; color: #fff; }
+.org svg { width: 16px; height: 16px; }
+
+/* ---------- main ---------- */
+/* raised white surfaces and glossy dark controls, shared by everything that floats on the map */
+.select, .filters, .stats, .alert, .zoom, .pinLab, .pop {
+  background: linear-gradient(180deg, #fff, #F7FAFA);
+  box-shadow: inset 0 0 0 1px rgb(15 26 26 / 0.07), inset 0 1px 0 #fff, 0 1px 2px rgb(8 31 28 / 0.05), 0 8px 20px -6px rgb(8 31 28 / 0.1);
+}
+.btnDark, .filters [data-on] {
+  color: #fff; background: linear-gradient(180deg, #2C3A3A, #0F1A1A);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 2px 6px rgb(8 31 28 / 0.3);
+}
+.main { display: flex; flex-direction: column; gap: 12px; padding: 14px 28px 16px; background: linear-gradient(180deg, #FAFCFC, #EEF3F3); }
+.head { display: flex; align-items: center; gap: 12px; height: 50px; }
+.head > div { flex: 1; }
+.head h3 { font-size: 24px; font-weight: 500; letter-spacing: -0.02em; }
+.head p { margin-top: 3px; font-size: 14px; color: var(--ink-3); }
+.live {
+  display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px 0 8px; border-radius: 99px;
+  font-size: 12.5px; font-weight: 500; color: var(--teal-ink);
+  background: linear-gradient(180deg, #F0FDFB, #D9F6F2); box-shadow: inset 0 0 0 1px var(--teal-line), inset 0 1px 0 #fff, 0 1px 3px rgb(0 115 107 / 0.08);
+}
+.live svg { width: 14px; height: 14px; stroke-width: 2; }
+.select { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: 12px; font-size: 14px; font-weight: 500; }
+.select svg { width: 16px; height: 16px; color: var(--ink-3); }
+
+/* the map sits in a recessed well */
+.map {
+  position: relative; height: 674px; border-radius: 18px; overflow: hidden;
+  background: #ECF0F0 url('/live/map.webp') center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px rgb(15 26 26 / 0.1), inset 0 2px 6px rgb(8 31 28 / 0.1), 0 1px 0 #fff;
 }
 
-/* The stage holds the frame plus the cards and wires that hang off its sides. */
-.stage { position: relative; margin-top: 64px; }
+/* pins: a glossy count badge on the site, its label beside it */
+.pin { position: absolute; width: 0; height: 0; }
+.badgeDot {
+  position: absolute; left: -15px; top: -15px; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+  font-size: 12.5px; font-weight: 500; color: var(--ink);
+  background: linear-gradient(180deg, #3EE7DA, #00B3A6); box-shadow: 0 0 0 2.5px #fff, inset 0 1px 0 rgb(255 255 255 / 0.35), 0 3px 8px rgb(0 115 107 / 0.4);
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
+}
+.pin[data-bad] .badgeDot { color: #fff; background: linear-gradient(180deg, #F05252, #C81E1E); box-shadow: 0 0 0 2.5px #fff, inset 0 1px 0 rgb(255 255 255 / 0.35), 0 3px 8px rgb(200 30 30 / 0.4); }
+.pin[data-bad]::before { /* soft halo */
+  content: ''; position: absolute; left: -28px; top: -28px; width: 56px; height: 56px; border-radius: 50%;
+  background: radial-gradient(circle, rgb(239 68 68 / 0.24) 30%, rgb(239 68 68 / 0.1) 31%, rgb(239 68 68 / 0.1) 70%, transparent 71%);
+  transition: opacity 0.3s;
+}
+.pinLab { position: absolute; left: 20px; top: 0; transform: translateY(-50%); display: flex; gap: 6px; padding: 5px 10px; border-radius: 9px; white-space: nowrap; font-size: 13px; }
+.pin[data-left] .pinLab { left: auto; right: 20px; }
+.pinLab b { font-weight: 500; }
+.pinLab span { font-size: 12.5px; color: var(--ink-3); }
+.pinLab em { font-size: 12.5px; font-weight: 500; color: var(--red-ink); }
+.pin[data-bad] .pinLab span { color: var(--red-ink); }
+.pin[data-bad='noshow'] .pinLab { display: grid; grid-template-columns: auto auto auto; }
+.pin[data-bad='noshow'] .pinLab em { grid-area: 1 / 3; }
+.pin[data-bad='noshow'] .pinLab .now { color: var(--teal-ink); }
+/* cover sent: Palm Jumeirah goes calm */
+.board[data-covered] .pin[data-bad='noshow'] .badgeDot { color: var(--ink); background: linear-gradient(180deg, #3EE7DA, #00B3A6); box-shadow: 0 0 0 2.5px #fff, inset 0 1px 0 rgb(255 255 255 / 0.35), 0 3px 8px rgb(0 115 107 / 0.4); }
+.board[data-covered] .pin[data-bad='noshow']::before { opacity: 0; }
+.board[data-covered] .pin[data-bad='noshow'] .pinLab span { color: var(--ink-3); }
 
-/* The frame: 5px of surface around the image; corners stay concentric (32 = 27 + 5). */
-.frame {
-  position: relative;
-  padding: 5px;
-  border-radius: 32px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-2);
-  overflow: hidden; /* keeps the image's settle-in zoom inside the rounded frame */
-}
-.shot {
-  display: block;
-  width: 100%;
-  aspect-ratio: 3 / 2; /* matches ChatGPT's landscape output (1536×1024), so a new mockup drops in uncropped */
-  border-radius: 27px;
-  object-fit: cover;
-  background:
-    radial-gradient(120% 90% at 50% 100%, var(--teal-tint), transparent 60%),
-    linear-gradient(var(--surface-2), var(--bg));
-}
+/* overlays */
+.filters { position: absolute; left: 16px; top: 16px; display: flex; gap: 2px; padding: 3px; border-radius: 99px; }
+.filters > span { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px 0 12px; border-radius: 99px; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.filters i { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 7px; border-radius: 99px; font-size: 11.5px; background: var(--surface-2); }
+.filters [data-on] i { color: #fff; background: rgb(255 255 255 / 0.18); }
+.filters i[data-red] { color: var(--red-ink); background: var(--red-tint); }
+.stats { position: absolute; right: 16px; top: 16px; display: flex; padding: 0 4px; border-radius: 14px; }
+.stats > div { display: flex; flex-direction: column; padding: 8px 14px; font-size: 12px; color: var(--ink-3); }
+.stats > div + div { box-shadow: inset 1px 0 0 var(--line); }
+.stats b { font-size: 18px; font-weight: 500; letter-spacing: -0.02em; color: var(--ink); }
+.stats small { font-size: 13px; font-weight: 400; color: var(--ink-4); }
+.stats [data-red] b { color: var(--red-ink); }
+.alerts { position: absolute; left: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; width: 300px; }
+.alert { display: flex; align-items: center; gap: 10px; }
+.alert { padding: 10px; border-radius: 14px; }
+.alert.swap { display: grid; }
+.alertTx { flex: 1; display: flex; flex-direction: column; gap: 1px; font-size: 12px; color: var(--ink-3); }
+.alertTx b { font-size: 13.5px; font-weight: 500; color: var(--ink); }
+.alertIc, .okIc { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; }
+.alertIc { color: var(--red-ink); background: linear-gradient(180deg, #FFF4F4, #FFE1E1); box-shadow: inset 0 0 0 1px #FBCACA, inset 0 1px 0 #fff; }
+.okIc { color: var(--teal-ink); background: linear-gradient(180deg, #F0FDFB, #D9F6F2); box-shadow: inset 0 0 0 1px var(--teal-line), inset 0 1px 0 #fff; }
+.alertIc svg, .okIc svg { width: 17px; height: 17px; stroke-width: 2; }
+.btnDark { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 10px; border-radius: 10px; font-size: 13px; font-weight: 500; }
+.btnDark svg { width: 14px; height: 14px; stroke-width: 2; }
+.zoom { position: absolute; right: 16px; bottom: 34px; display: flex; flex-direction: column; border-radius: 12px; overflow: hidden; }
+.zoom svg { width: 36px; height: 36px; padding: 10px; color: var(--ink-2); stroke-width: 2; }
+.zoom svg + svg { box-shadow: inset 0 1px 0 var(--line); }
+.attr { position: absolute; right: 6px; bottom: 6px; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: var(--ink-3); background: rgb(255 255 255 / 0.8); }
 
-/* Anchor pins sit on the image itself (inset by the frame padding + border). */
-.pins { position: absolute; inset: 6px; pointer-events: none; }
-.pin {
-  position: absolute;
-  width: 12px; height: 12px;
-  margin: -6px 0 0 -6px;
-  border-radius: 50%;
-  background: var(--surface);
-  box-shadow: 0 0 0 2.5px var(--ink), 0 2px 6px rgb(15 26 26 / 0.3);
+/* the card on Palm Jumeirah: closed until the cursor clicks the pin */
+.pop {
+  position: absolute; left: 204px; top: 136px; width: 312px; display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 14px; border-radius: 16px;
+  box-shadow: inset 0 0 0 1px rgb(15 26 26 / 0.07), inset 0 1px 0 #fff, 0 1px 2px rgb(8 31 28 / 0.05), 0 18px 40px -10px rgb(8 31 28 / 0.18);
+  transform-origin: 50% 0; transition: opacity 0.3s, transform 0.45s var(--ease-out);
 }
-.pin::after {
-  content: '';
-  position: absolute; inset: -2.5px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 0 rgb(15 26 26 / 0.35);
-  animation: ping 2.4s var(--ease-out) infinite;
-}
-@keyframes ping { to { box-shadow: 0 0 0 12px rgb(15 26 26 / 0); } }
+.pop::before { content: ''; position: absolute; left: 150px; top: -6px; width: 12px; height: 12px; border-radius: 2px; transform: rotate(45deg); background: #fff; box-shadow: -1px -1px 0 rgb(15 26 26 / 0.07); }
+.board:not([data-sel]) .pop { opacity: 0; transform: translateY(-8px) scale(0.96); pointer-events: none; }
+.popHead { display: flex; align-items: flex-start; gap: 10px; }
+.popHead > span { flex: 1; display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; color: var(--ink-3); }
+.popHead b { font-size: 17px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); }
+.popHead strong { font-size: 20px; font-weight: 500; color: var(--red-ink); transition: color 0.3s; }
+.popHead small { font-size: 14px; font-weight: 400; color: var(--ink-4); }
+.board[data-covered] .popHead strong { color: var(--ink); }
+.slots { display: flex; gap: 3px; }
+.slots i { flex: 1; height: 30px; border-radius: 6px; background: linear-gradient(180deg, #3EE7DA, #00C2B4); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3); }
+.slots i[data-gap] { display: grid; place-items: center; background: var(--red-tint); box-shadow: inset 0 0 0 1.5px var(--red-ink); color: var(--red-ink); transition: background 0.3s, box-shadow 0.3s, color 0.3s; }
+.board[data-covered] .slots i[data-gap] { background: var(--teal-tint); box-shadow: inset 0 0 0 1.5px var(--teal); color: var(--teal-ink); }
+.slots svg { width: 13px; height: 13px; stroke-width: 2.2; }
+.row { padding: 10px; border-radius: 12px; background: var(--red-tint); box-shadow: inset 0 0 0 1px #FBCACA; transition: background 0.3s, box-shadow 0.3s; }
+.board[data-covered] .row { background: var(--teal-tint); box-shadow: inset 0 0 0 1px var(--teal-line); }
+.row .alertTx { color: var(--red-ink); }
+.board[data-covered] .row .alertTx { color: var(--teal-ink); }
+.ava, .avaOk { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; font-size: 11px; font-weight: 500; background: #fff; }
+.ava { color: var(--red-ink); box-shadow: inset 0 0 0 1px #FBCACA; }
+.avaOk { color: var(--teal-ink); box-shadow: inset 0 0 0 1px var(--teal-line); }
+.popIn { font-size: 12.5px; color: var(--ink-3); }
 
-/* Wires: a black line that reads on both the grey photo and the white screen, plus a short pulse
-   that keeps travelling from the dashboard out to the card. */
-.wires { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.line, .flow { fill: none; stroke-linecap: round; }
-.line { stroke: var(--ink); stroke-width: 1.75; stroke-dasharray: 1; }
-.flow {
-  stroke: var(--teal); stroke-width: 3;
-  stroke-dasharray: 0.06 0.94;
-  animation: flow 2.8s linear infinite;
-}
-@keyframes flow { from { stroke-dashoffset: 0; } to { stroke-dashoffset: 1; } }
-
-/* Callout cards: the same dark treatment as the hero's shift log (ink gradient, top highlight, outer ring),
-   white heading, bright body. The heading names the dashboard element the line ends on.
-   Desktop: they float off the frame's sides, never closer than 24px to the viewport edge,
-   and animate in by sliding outward from the frame so nothing crosses the viewport edge. */
-.cards { list-style: none; margin: 0; padding: 0; }
-.card {
-  position: absolute;
-  width: clamp(200px, calc((100vw - 1200px) / 2 + 150px), 248px); /* narrows with the side margin so it never covers the laptop */
-  padding: 16px 18px 17px;
-  border-radius: 18px;
-  background: linear-gradient(180deg, #182727, var(--ink) 70%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 0 1px rgb(15 26 26 / 0.5), 0 24px 50px -16px rgb(15 26 26 / 0.55);
-  font-size: 14px; line-height: 1.5; color: rgb(233 239 239 / 0.86);
-  text-wrap: pretty;
-}
-.card[data-side='left'] { left: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
-.card[data-side='right'] { right: max(-104px, calc((100% - 100vw) / 2 + 24px)); }
-.label { display: block; margin-bottom: 6px; font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: #F2F6F6; }
-
-/* Narrower screens: no room at the sides, so the cards stack under the frame and the wires go. */
-@media (max-width: 1279px) {
-  .pins, .wires { display: none; }
-  .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
-  .card { position: static; width: auto; top: auto !important; }
+.ui .cursor {
+  position: absolute; z-index: 5; left: 0; top: 0; width: 32px; height: 32px; margin: -4px 0 0 -6px;
+  fill: var(--ink); stroke: #fff; stroke-width: 1.6;
+  filter: drop-shadow(0 4px 8px rgb(15 26 26 / 0.3)); transform-origin: 6px 4px; pointer-events: none;
 }
 
 @media (max-width: 767px) {
   .section { padding: 72px 16px 96px; }
-  .stage { margin-top: 40px; }
-  .frame { border-radius: 24px; }
-  .shot { border-radius: 19px; aspect-ratio: 4 / 3; }
-  .cards { grid-template-columns: 1fr; }
+  .frame { margin-top: 40px; border-radius: 24px; }
+  .photo { border-radius: 19px; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  .pin::after, .flow { animation: none; }
-  .flow { display: none; }
+  .was, .now, .pop, .badgeDot, .pin::before, .slots i, .row { transition: none; }
 }
