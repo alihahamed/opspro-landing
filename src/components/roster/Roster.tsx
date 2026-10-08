@@ -109,7 +109,7 @@ export default function Roster() {
 
         <div className={s.board} data-board data-published="true">
           <header className={s.bar}>
-            <span className={s.store}><i className={s.storePhoto} /><span><b>Marina dark store</b>Roster for 5–11 October</span></span>
+            <span className={s.store}><i className={s.storePhoto} /><span><b>Marina supermarket</b>Roster for 5–11 October</span></span>
             <span className={s.status} data-status aria-live="off">Seen by {WORKERS} of {WORKERS}</span>
             <span className={s.btn} aria-hidden="true"><em className={s.btnIdle}>Publish roster</em><em className={s.btnDone}>{I.check}Published</em></span>
           </header>
