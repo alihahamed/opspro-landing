@@ -20,11 +20,11 @@ type Cell = Kind | 'off' | 'leave' | { was: Kind; now: Kind; i: number };
 
 const DAYS = [['Mon', '5'], ['Tue', '6'], ['Wed', '7'], ['Thu', '8'], ['Fri', '9'], ['Sat', '10'], ['Sun', '11']];
 const ROWS: { name: string; role: string; cells: Cell[] }[] = [
-  { name: 'Aisha K.', role: 'Supervisor', cells: ['M', 'M', 'off', 'M', 'M', 'M', 'off'] },
+  { name: 'Aisha K.', role: 'Picker', cells: ['M', 'M', 'off', 'M', 'M', 'M', 'off'] },
   { name: 'Nimal P.', role: 'Picker', cells: ['M', 'off', 'M', { was: 'two', now: 'M', i: 1 }, 'M', 'off', 'M'] },
   { name: 'Sana R.', role: 'Picker', cells: ['off', 'N', { was: 'M', now: 'E', i: 0 }, 'off', 'N', 'N', 'off'] },
-  { name: 'Chinedu O.', role: 'Driver', cells: ['M', 'M', 'M', 'off', 'M', { was: 'M', now: 'rel', i: 2 }, 'off'] },
-  { name: 'Bilal S.', role: 'Packer', cells: ['leave', 'leave', 'M', 'M', 'off', 'M', 'M'] },
+  { name: 'Chinedu O.', role: 'Picker', cells: ['M', 'M', 'M', 'off', 'M', { was: 'M', now: 'rel', i: 2 }, 'off'] },
+  { name: 'Bilal S.', role: 'Picker', cells: ['leave', 'leave', 'M', 'M', 'off', 'M', 'M'] },
 ];
 // in column order, so the sweep finds them left to right
 const ISSUES = [
